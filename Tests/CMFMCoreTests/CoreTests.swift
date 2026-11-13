@@ -143,6 +143,11 @@ final class CoreTests: XCTestCase {
 
     // MARK: Cleanup catalog
 
+    func testSmartCleanNeverTouchesTrashOrOptInCategories() {
+        let smart = Set(CleanupCatalog.categories.filter(\.isSmartCleanable).map(\.id))
+        XCTAssertEqual(smart, ["app-caches", "dev-caches", "browser-caches", "logs"])
+    }
+
     func testCleanupScanFindsCandidatesAndSkipsOwnLogs() throws {
         try write("Library/Caches/com.foo/data.bin", bytes: 200_000)
         try write("Library/Logs/SomeApp/a.log", bytes: 50_000)

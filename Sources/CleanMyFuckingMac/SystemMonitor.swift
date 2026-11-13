@@ -158,7 +158,10 @@ struct MenuBarView: View {
             HStack(spacing: 10) {
                 LogoView(size: 30)
                 VStack(alignment: .leading, spacing: 0) {
-                    Text("CleanMyFuckingMac").font(.system(size: 13, weight: .bold, design: .rounded))
+                    HStack(alignment: .firstTextBaseline, spacing: 6) {
+                        Text("CleanMyFuckingMac").font(.system(size: 13, weight: .bold, design: .rounded))
+                        Text(AppVersion.label).font(.system(size: 10, weight: .medium)).monospacedDigit().foregroundStyle(Theme.secondaryText)
+                    }
                     Text("Santé \(monitor.health.map { "\($0.score)/100" } ?? "…") · Nettoyable \(state.isCleanScanning ? "…" : Fmt.bytes(state.cleanableTotal))")
                         .font(.system(size: 11)).foregroundStyle(Theme.secondaryText)
                 }
@@ -214,7 +217,8 @@ struct MenuBarView: View {
 
             HStack(spacing: 8) {
                 Button("Smart Scan") { state.smartScan(); open(.dashboard) }.buttonStyle(GhostButtonStyle())
-                Button("Nettoyer") { open(.cleanup) }.buttonStyle(GhostButtonStyle())
+                Button("Smart Clean") { state.requestSmartClean(); open(.dashboard) }.buttonStyle(GhostButtonStyle())
+                    .disabled(state.isCleanScanning || state.isDeleting)
                 Button("Space Lens") { open(.lens) }.buttonStyle(GhostButtonStyle())
                 Button("Santé") { open(.health) }.buttonStyle(GhostButtonStyle())
                 Spacer()
@@ -226,7 +230,7 @@ struct MenuBarView: View {
                                                                        set: { monitor.setLaunchAtLogin($0) }))
                     .toggleStyle(.switch).controlSize(.mini).font(.system(size: 11))
                 Spacer()
-                Button("Quitter") { NSApp.terminate(nil) }.buttonStyle(GhostButtonStyle())
+                Button("Quitter") { AppDelegate.quit() }.buttonStyle(GhostButtonStyle())
             }
         }
         .padding(14)

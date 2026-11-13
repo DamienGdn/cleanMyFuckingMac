@@ -17,7 +17,62 @@ enum Main {
 
 let mainWindowID = "main"
 
+enum AppVersion {
+    /// "v1.1.0" from the bundle; "dev" when run outside the .app (`swift run`).
+    static let label = (Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String).map { "v\($0)" } ?? "dev"
+}
+
+/// Keeps the menu bar service alive. The Dock icon follows the main window, and Cmd+Q or
+/// the Dock's Quit only close that window: `AppDelegate.quit()` and a session end really quit.
+@MainActor
+final class AppDelegate: NSObject, NSApplicationDelegate {
+    private static var isQuitting = false
+
+    static func quit() {
+        isQuitting = true
+        NSApp.terminate(nil)
+    }
+
+    private static var mainWindows: [NSWindow] {
+        NSApp.windows.filter { !($0 is NSPanel) && $0.canBecomeMain && $0.isVisible }
+    }
+
+    func applicationDidFinishLaunching(_ notification: Notification) {
+        let center = NotificationCenter.default
+        center.addObserver(self, selector: #selector(windowDidBecomeMain), name: NSWindow.didBecomeMainNotification, object: nil)
+        center.addObserver(self, selector: #selector(windowWillClose), name: NSWindow.willCloseNotification, object: nil)
+        // Logging out or shutting down must not be blocked by the service.
+        NSWorkspace.shared.notificationCenter.addObserver(self, selector: #selector(sessionWillEnd),
+                                                          name: NSWorkspace.willPowerOffNotification, object: nil)
+    }
+
+    func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
+        if Self.isQuitting { return .terminateNow }
+        Log.info("app", "Fenêtre fermée, le service reste actif dans la barre de menus")
+        Self.mainWindows.forEach { $0.close() }
+        return .terminateCancel
+    }
+
+    @objc private func windowDidBecomeMain(_ notification: Notification) {
+        guard !(notification.object is NSPanel) else { return }
+        NSApp.setActivationPolicy(.regular)
+    }
+
+    @objc private func windowWillClose(_ notification: Notification) {
+        let closing = notification.object as? NSWindow
+        // The closing window is still visible here: decide once it is gone.
+        DispatchQueue.main.async {
+            if Self.mainWindows.allSatisfy({ $0 === closing }) { NSApp.setActivationPolicy(.accessory) }
+        }
+    }
+
+    @objc private func sessionWillEnd() {
+        Self.isQuitting = true
+    }
+}
+
 struct CleanMyFuckingMacApp: App {
+    @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @StateObject private var state = AppState()
     @StateObject private var monitor = SystemMonitor()
 
@@ -64,8 +119,16 @@ struct RootView: View {
             }
         }
         .foregroundStyle(.white)
+        .confirmationDialog("Smart Clean : nettoyer \(Fmt.bytes(state.smartCleanTotal)) ?", isPresented: $state.isConfirmingSmartClean) {
+            Button(state.permanentDelete ? "Supprimer définitivement" : "Mettre à la Corbeille", role: .destructive) {
+                Task { await state.smartClean() }
+            }
+        } message: {
+            Text("Caches d'apps, caches développeur, caches des navigateurs et journaux. "
+                 + (state.permanentDelete ? "Suppression définitive : impossible à annuler." : "Tout part dans la Corbeille."))
+        }
         .task {
-            Log.info("app", "Démarrage de CleanMyFuckingMac")
+            Log.info("app", "Démarrage de CleanMyFuckingMac \(AppVersion.label)")
             state.refreshSystem()
             state.loadApps()
             state.scanCleanup()
@@ -131,6 +194,8 @@ struct Sidebar: View {
                 ProgressView(value: state.disk.usedFraction).tint(Theme.pink)
                 Text("\(Fmt.bytes(state.disk.free)) libres sur \(Fmt.bytes(state.disk.total))")
                     .font(.system(size: 11)).foregroundStyle(Theme.secondaryText)
+                Text(AppVersion.label)
+                    .font(.system(size: 10, weight: .medium)).monospacedDigit().foregroundStyle(Theme.secondaryText.opacity(0.7))
             }
             .padding(.horizontal, 6)
             .padding(.bottom, 18)

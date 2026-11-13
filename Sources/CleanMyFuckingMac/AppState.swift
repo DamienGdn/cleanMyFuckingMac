@@ -76,6 +76,7 @@ final class AppState: ObservableObject {
     @Published var cleanSelection: Set<String> = []
     @Published var isDeleting = false
     @Published var lastOutcome: String?
+    @Published var isConfirmingSmartClean = false
 
     @Published var isFindingDuplicates = false
     @Published var duplicateGroups: [DuplicateGroup]?
@@ -90,6 +91,11 @@ final class AppState: ObservableObject {
 
     var cleanSelectedTotal: Int64 {
         cleanResults.flatMap(\.items).filter { cleanSelection.contains($0.path) }.reduce(0) { $0 + $1.size }
+    }
+
+    /// What Smart Clean removes: the safe default categories, never the Trash or AI models.
+    var smartCleanTotal: Int64 {
+        cleanResults.filter(\.category.isSmartCleanable).reduce(0) { $0 + $1.total }
     }
 
     var cleanableTotal: Int64 { cleanResults.reduce(0) { $0 + $1.total } }
@@ -143,24 +149,42 @@ final class AppState: ObservableObject {
     // MARK: Cleanup
 
     func scanCleanup() {
+        Task { await rescanCleanup() }
+    }
+
+    func rescanCleanup() async {
         guard !isCleanScanning else { return }
         isCleanScanning = true
         lastOutcome = nil
         let home = home
-        Task.detached(priority: .userInitiated) {
-            let results = CleanupScanner.scan(home: home)
-            await MainActor.run {
-                self.cleanResults = results
-                self.cleanSelection = Set(results.filter { $0.category.selectedByDefault }.flatMap(\.items).map(\.path))
-                self.isCleanScanning = false
-                Log.info("nettoyage", "Analyse : \(Fmt.bytes(self.cleanableTotal)) nettoyables")
-            }
-        }
+        let results = await Task.detached(priority: .userInitiated) { CleanupScanner.scan(home: home) }.value
+        cleanResults = results
+        cleanSelection = Set(results.filter { $0.category.selectedByDefault }.flatMap(\.items).map(\.path))
+        isCleanScanning = false
+        Log.info("nettoyage", "Analyse : \(Fmt.bytes(cleanableTotal)) nettoyables")
     }
 
     func cleanSelected() async {
+        await clean { _, item in cleanSelection.contains(item.path) }
+    }
+
+    /// Rescans, then asks for confirmation before `smartClean()` deletes anything.
+    func requestSmartClean() {
+        guard !isCleanScanning, !isDeleting else { return }
+        Task {
+            await rescanCleanup()
+            if smartCleanTotal > 0 { isConfirmingSmartClean = true } else { lastOutcome = "Smart Clean : rien à nettoyer." }
+        }
+    }
+
+    func smartClean() async {
+        Log.info("nettoyage", "Smart Clean : \(Fmt.bytes(smartCleanTotal))")
+        await clean { result, _ in result.category.isSmartCleanable }
+    }
+
+    private func clean(where shouldClean: (CleanResult, CleanItem) -> Bool) async {
         let requests = cleanResults.flatMap { result in
-            result.items.filter { cleanSelection.contains($0.path) }.map {
+            result.items.filter { shouldClean(result, $0) }.map {
                 DeletionRequest(path: $0.path, size: $0.size, permanent: permanentDelete || result.category.alwaysPermanent)
             }
         }

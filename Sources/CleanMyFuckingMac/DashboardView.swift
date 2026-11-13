@@ -10,9 +10,19 @@ struct DashboardView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 PageHeader(title: "Tableau de bord", subtitle: "Où part ton espace, et ce que tu peux récupérer.") {
+                    Button("Smart Clean") { state.requestSmartClean() }
+                        .buttonStyle(GhostButtonStyle())
+                        .disabled(isBusy || state.isDeleting)
+                        .help("Nettoie en un clic les caches et journaux sans risque, après confirmation.")
                     Button(isBusy ? "Analyse en cours…" : "Smart Scan") { state.smartScan() }
                         .buttonStyle(AccentButtonStyle())
                         .disabled(isBusy)
+                }
+
+                if state.isDeleting {
+                    HStack(spacing: 8) { ProgressView().controlSize(.small); Text("Nettoyage en cours…").font(.system(size: 12)) }
+                } else if let outcome = state.lastOutcome {
+                    Text(outcome).font(.system(size: 12)).foregroundStyle(Theme.mint)
                 }
 
                 if !state.hasFullDiskAccess { FullDiskAccessBanner() }

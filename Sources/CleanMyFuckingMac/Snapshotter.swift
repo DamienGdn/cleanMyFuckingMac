@@ -26,7 +26,7 @@ enum Snapshotter {
             try? NSBitmapImageRep(cgImage: image).representation(using: .png, properties: [:])?
                 .write(to: directory.appendingPathComponent("menubar.png"))
         }
-        NSApp.terminate(nil)
+        AppDelegate.quit()
     }
 
     @MainActor

@@ -19,6 +19,9 @@ public struct CleanCategory: Identifiable, Sendable {
     /// Deleted for good regardless of the user's Trash preference (the Trash itself).
     public let alwaysPermanent: Bool
     public let sources: [Source]
+
+    /// Safe to remove in one click: recreated on demand and still recoverable from the Trash.
+    public var isSmartCleanable: Bool { selectedByDefault && !alwaysPermanent }
 }
 
 public struct CleanItem: Identifiable, Sendable {

@@ -2,6 +2,19 @@
 
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions en [SemVer](https://semver.org/lang/fr/).
 
+## [1.1.0] - 2026-11-13
+
+### Ajouté
+
+- **Smart Clean** : nettoyage en un clic des catégories sans risque (caches d'apps, développeur, navigateurs, journaux), avec confirmation. Tableau de bord et barre de menus.
+- Version de l'app affichée dans la barre latérale et le panneau de la barre de menus.
+
+### Modifié
+
+- Fenêtre fermée : l'icône disparaît du Dock, le service reste dans la barre de menus.
+- Cmd+Q et « Quitter » du Dock ne ferment plus que la fenêtre. Arrêt complet : **Quitter** dans le panneau de la barre de menus. La fermeture de session n'est pas bloquée.
+- `scripts/build-app.sh` lit la version dans le dernier tag git (`VERSION=x.y.z` pour forcer).
+
 ## [1.0.0] - 2026-11-13
 
 Première version publique.
@@ -22,4 +35,5 @@ Première version publique.
 - Garde-fou `SafeRemover` pour toutes les suppressions, Corbeille par défaut.
 - Pipeline de tests GitHub Actions.
 
+[1.1.0]: https://github.com/DamienGdn/cleanMyFuckingMac/releases/tag/v1.1.0
 [1.0.0]: https://github.com/DamienGdn/cleanMyFuckingMac/releases/tag/v1.0.0

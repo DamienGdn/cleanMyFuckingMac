@@ -4,7 +4,7 @@
 
 <p align="center">
   <a href="https://github.com/DamienGdn/cleanMyFuckingMac/actions/workflows/ci.yml"><img src="https://github.com/DamienGdn/cleanMyFuckingMac/actions/workflows/ci.yml/badge.svg" alt="Tests"></a>
-  <a href="https://github.com/DamienGdn/cleanMyFuckingMac/releases/tag/v1.0.0"><img src="https://img.shields.io/badge/version-1.0.0-ff4d8c" alt="Version 1.0.0"></a>
+  <a href="https://github.com/DamienGdn/cleanMyFuckingMac/releases/tag/v1.1.0"><img src="https://img.shields.io/badge/version-1.1.0-ff4d8c" alt="Version 1.1.0"></a>
   <img src="https://img.shields.io/badge/macOS-14%2B-8c5cff" alt="macOS 14+">
   <img src="https://img.shields.io/badge/Swift-5.9%2B-ff9e45" alt="Swift 5.9+">
 </p>
@@ -26,7 +26,7 @@ App macOS native en SwiftUI, sans aucune dépendance externe.
 
 | Écran | Ce qu'il fait |
 |---|---|
-| **Tableau de bord** | Jauge disque, Smart Scan en un clic, plus gros dossiers |
+| **Tableau de bord** | Jauge disque, Smart Scan et Smart Clean en un clic, plus gros dossiers |
 | **Santé du Mac** | Score sur 100 et KPI : batterie (capacité, cycles, température), SMART du SSD, espace, mémoire, swap, charge, chauffe, uptime |
 | **Space Lens** | Carte (treemap) navigable du disque : plus le bloc est gros, plus il pèse |
 | **Nettoyage** | Caches d'apps, caches développeur (uv, npm, pnpm, Bun, Gradle, pub, Cargo, CocoaPods, Xcode), navigateurs, journaux, modèles IA, Corbeille |
@@ -34,13 +34,13 @@ App macOS native en SwiftUI, sans aucune dépendance externe.
 | **Désinstalleur** | Supprime une app et les données qu'elle a laissées dans `~/Library` |
 | **Performance** | Mémoire, processeur, réseau, apps les plus gourmandes, programmes lancés au démarrage |
 | **Journaux** | Tout ce que l'app a fait, suppression par suppression |
-| **Barre de menus** | Panneau rapide : disque, mémoire, CPU, réseau, batterie, top des apps. Reste actif fenêtre fermée, lancement à l'ouverture de session en option, alerte sous 10 Go libres |
+| **Barre de menus** | Panneau rapide : disque, mémoire, CPU, réseau, batterie, top des apps. Reste actif fenêtre fermée (l'icône quitte le Dock, Cmd+Q ne ferme que la fenêtre), lancement à l'ouverture de session en option, alerte sous 10 Go libres |
 
 ## Installation
 
 ### Depuis une release
 
-1. Télécharge `CleanMyFuckingMac-1.0.0.zip` sur la page [Releases](https://github.com/DamienGdn/cleanMyFuckingMac/releases).
+1. Télécharge `CleanMyFuckingMac-1.1.0.zip` sur la page [Releases](https://github.com/DamienGdn/cleanMyFuckingMac/releases).
 2. Dézippe et glisse l'app dans `/Applications`.
 3. L'app est signée localement, pas notarisée par Apple. Au premier lancement : clic droit sur l'app, **Ouvrir**.
    Si macOS refuse encore : `xattr -dr com.apple.quarantine /Applications/CleanMyFuckingMac.app`.
@@ -110,9 +110,13 @@ CMFM_SNAPSHOT_DIR=/tmp/captures CMFM_SNAPSHOT_ROOT=~/Downloads \
 
 Les tests tournent sur GitHub Actions à chaque push et pull request ([workflow](.github/workflows/ci.yml)).
 
-## Version 1.0.0
+## Version 1.1.0
 
-Première version publique. Détail dans le [CHANGELOG](CHANGELOG.md).
+Détail dans le [CHANGELOG](CHANGELOG.md).
+
+- **Smart Clean** : nettoie en un clic les caches et journaux sans risque, après confirmation. Ne touche jamais à la Corbeille ni aux modèles IA.
+- **Vrai service** : fenêtre fermée, l'icône quitte le Dock et l'app continue dans la barre de menus. Cmd+Q ne ferme que la fenêtre ; pour tout arrêter, **Quitter** dans le panneau de la barre de menus.
+- **Version affichée** dans la barre latérale et le panneau, tirée du tag git au build.
 
 - Les neuf écrans ci-dessus, avec logo, écran de démarrage et thème sombre.
 - Service en barre de menus avec alerte disque faible.
