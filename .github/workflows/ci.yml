@@ -1,0 +1,27 @@
+name: Tests
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Build et tests
+    runs-on: macos-15
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Version de Swift
+        run: swift --version
+      - name: Tests du moteur
+        run: swift test
+      - name: Build de l'application (release)
+        run: swift build -c release --product CleanMyFuckingMac
+      - name: Build du CLI (release)
+        run: swift build -c release --product cmfm-cli
