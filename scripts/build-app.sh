@@ -40,5 +40,7 @@ cat > "$APP/Contents/Info.plist" <<PLIST
 </plist>
 PLIST
 
+# Synced folders (iCloud, Finder) tag files with attributes that codesign rejects.
+xattr -cr "$APP"
 codesign --force --sign - "$APP"
 echo "OK : $APP ($VERSION, build $BUILD)"

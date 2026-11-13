@@ -90,4 +90,17 @@ public enum Fmt {
     public static func bytes(_ value: Int64) -> String {
         ByteCountFormatter.string(fromByteCount: max(0, value), countStyle: .file)
     }
+
+    /// "62G", "1,5M", "840K": decimal units, for places where width is scarce.
+    public static func compactBytes(_ value: Int64) -> String {
+        var scaled = Double(max(0, value)) / 1000
+        var unit = 0
+        let units = ["K", "M", "G", "T"]
+        while scaled >= 999.5, unit < units.count - 1 {
+            scaled /= 1000
+            unit += 1
+        }
+        let digits = scaled < 9.95 && unit > 0 ? 1 : 0
+        return String(format: "%.\(digits)f", locale: .current, scaled) + units[unit]
+    }
 }

@@ -18,6 +18,26 @@ struct AppLoad: Identifiable {
     }
 }
 
+/// One live value the menu bar can show next to the icon.
+enum MenuBarMetric: String, CaseIterable, Identifiable {
+    case cpu, memory, disk, download, upload, battery
+
+    /// More than this no longer fits a crowded menu bar.
+    static let maxShown = 3
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .cpu: "CPU"
+        case .memory: "RAM"
+        case .disk: "Disque"
+        case .download: "↓ Réseau"
+        case .upload: "↑ Réseau"
+        case .battery: "Batterie"
+        }
+    }
+}
+
 /// The background service: samples the machine every few seconds for the menu bar and the Performance screen.
 @MainActor
 final class SystemMonitor: ObservableObject {
@@ -38,6 +58,11 @@ final class SystemMonitor: ObservableObject {
     @Published var topByMemory: [AppLoad] = []
     @Published var launchAtLogin = SMAppService.mainApp.status == .enabled
     @Published var health: HealthReport?
+    /// What the menu bar shows next to the icon, in the order picked. Empty: icon only.
+    @Published var menuBarMetrics = UserDefaults.standard.stringArray(forKey: "menuBarMetrics")?
+        .compactMap(MenuBarMetric.init(rawValue:)) ?? [.disk] {
+        didSet { UserDefaults.standard.set(menuBarMetrics.map(\.rawValue), forKey: "menuBarMetrics") }
+    }
 
     private var lowDiskNotified = false
 
@@ -92,6 +117,34 @@ final class SystemMonitor: ObservableObject {
         warnIfDiskLow()
     }
 
+    // MARK: Menu bar label
+
+    /// Caption and value of every shown metric, e.g. ("CPU", "12%").
+    var menuBarItems: [MenuBarLabel.Item] {
+        menuBarMetrics.compactMap { metric in
+            switch metric {
+            case .cpu: .init(caption: "CPU", value: Self.percent(cpu))
+            case .memory: .init(caption: "RAM", value: Self.percent(memory.usedFraction))
+            case .disk: .init(caption: "SSD", value: Fmt.compactBytes(disk.free))
+            case .download: .init(caption: "DOWN", value: Fmt.compactBytes(Int64(downloadRate)))
+            case .upload: .init(caption: "UP", value: Fmt.compactBytes(Int64(uploadRate)))
+            case .battery: battery.map { .init(caption: "BAT", value: "\($0.percent)%") }
+            }
+        }
+    }
+
+    func toggleMenuBarMetric(_ metric: MenuBarMetric) {
+        if let index = menuBarMetrics.firstIndex(of: metric) {
+            menuBarMetrics.remove(at: index)
+        } else if menuBarMetrics.count < MenuBarMetric.maxShown {
+            menuBarMetrics.append(metric)
+        }
+    }
+
+    private static func percent(_ fraction: Double) -> String {
+        "\(Int((fraction * 100).rounded()))%"
+    }
+
     func refreshHealth() {
         let pressure: HealthInputs.ThermalPressure
         switch ProcessInfo.processInfo.thermalState {
@@ -138,6 +191,44 @@ final class SystemMonitor: ObservableObject {
             Log.error("moniteur", "Lancement à l'ouverture de session : \(error.localizedDescription)")
         }
         launchAtLogin = SMAppService.mainApp.status == .enabled
+    }
+}
+
+/// What sits in the menu bar: the icon, then one tiny caption-over-value column per metric.
+/// A menu bar label only accepts an image or a text, so the layout is drawn into a template image.
+struct MenuBarLabel: View {
+    struct Item {
+        let caption: String
+        let value: String
+    }
+
+    let items: [Item]
+    /// Wide enough for "100%" so the menu bar does not shift when values change.
+    private static let columnWidth: CGFloat = 30
+    private static let barHeight: CGFloat = 22
+
+    var body: some View {
+        HStack(spacing: 5) {
+            Image(systemName: "bolt.circle.fill").font(.system(size: 14, weight: .medium))
+            ForEach(items, id: \.caption) { item in
+                VStack(spacing: -1) {
+                    Text(item.caption).font(.system(size: 7, weight: .bold)).kerning(0.4).opacity(0.65)
+                    Text(item.value).font(.system(size: 11, weight: .semibold, design: .rounded)).monospacedDigit()
+                }
+                .frame(width: Self.columnWidth)
+            }
+        }
+        .foregroundStyle(.black)
+        .frame(height: Self.barHeight)
+    }
+
+    /// Template image: macOS tints it for light, dark and highlighted menu bars.
+    @MainActor var image: NSImage {
+        let renderer = ImageRenderer(content: self)
+        renderer.scale = NSScreen.main?.backingScaleFactor ?? 2
+        let image = renderer.nsImage ?? NSImage()
+        image.isTemplate = true
+        return image
     }
 }
 
@@ -222,6 +313,23 @@ struct MenuBarView: View {
                 Button("Space Lens") { open(.lens) }.buttonStyle(GhostButtonStyle())
                 Button("Santé") { open(.health) }.buttonStyle(GhostButtonStyle())
                 Spacer()
+            }
+
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Affiché dans la barre de menus (\(MenuBarMetric.maxShown) max)")
+                    .font(.system(size: 11)).foregroundStyle(Theme.secondaryText)
+                HStack(spacing: 5) {
+                    ForEach(MenuBarMetric.allCases.filter { $0 != .battery || monitor.battery != nil }) { metric in
+                        let isOn = monitor.menuBarMetrics.contains(metric)
+                        Button(metric.title) { monitor.toggleMenuBarMetric(metric) }
+                            .buttonStyle(.plain)
+                            .font(.system(size: 10.5, weight: .medium))
+                            .padding(.horizontal, 8).padding(.vertical, 4)
+                            .background(isOn ? AnyShapeStyle(Theme.accent) : AnyShapeStyle(.white.opacity(0.1)), in: Capsule())
+                            .opacity(isOn || monitor.menuBarMetrics.count < MenuBarMetric.maxShown ? 1 : 0.4)
+                            .accessibilityAddTraits(isOn ? .isSelected : [])
+                    }
+                }
             }
 
             Divider().overlay(.white.opacity(0.12))

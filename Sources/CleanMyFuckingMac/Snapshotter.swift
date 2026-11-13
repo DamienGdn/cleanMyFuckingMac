@@ -26,6 +26,9 @@ enum Snapshotter {
             try? NSBitmapImageRep(cgImage: image).representation(using: .png, properties: [:])?
                 .write(to: directory.appendingPathComponent("menubar.png"))
         }
+        try? MenuBarLabel(items: monitor.menuBarItems).image.tiffRepresentation
+            .flatMap { NSBitmapImageRep(data: $0)?.representation(using: .png, properties: [:]) }?
+            .write(to: directory.appendingPathComponent("menubar-label.png"))
         AppDelegate.quit()
     }
 

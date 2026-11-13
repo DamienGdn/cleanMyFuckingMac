@@ -91,8 +91,7 @@ struct CleanMyFuckingMacApp: App {
         MenuBarExtra {
             MenuBarView().environmentObject(state).environmentObject(monitor)
         } label: {
-            Image(systemName: "bolt.circle.fill")
-            Text(Fmt.bytes(monitor.disk.free))
+            Image(nsImage: MenuBarLabel(items: monitor.menuBarItems).image)
         }
         .menuBarExtraStyle(.window)
     }

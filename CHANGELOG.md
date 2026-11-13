@@ -2,6 +2,12 @@
 
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions en [SemVer](https://semver.org/lang/fr/).
 
+## [1.2.0] - 2026-11-13
+
+### Ajouté
+
+- Barre de menus configurable : jusqu'à 3 valeurs au choix (CPU, RAM, disque libre, débit ↓/↑, batterie), en format compact. Réglage dans le panneau.
+
 ## [1.1.0] - 2026-11-13
 
 ### Ajouté
@@ -35,5 +41,6 @@ Première version publique.
 - Garde-fou `SafeRemover` pour toutes les suppressions, Corbeille par défaut.
 - Pipeline de tests GitHub Actions.
 
+[1.2.0]: https://github.com/DamienGdn/cleanMyFuckingMac/releases/tag/v1.2.0
 [1.1.0]: https://github.com/DamienGdn/cleanMyFuckingMac/releases/tag/v1.1.0
 [1.0.0]: https://github.com/DamienGdn/cleanMyFuckingMac/releases/tag/v1.0.0

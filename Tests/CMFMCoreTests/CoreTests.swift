@@ -143,6 +143,13 @@ final class CoreTests: XCTestCase {
 
     // MARK: Cleanup catalog
 
+    func testCompactBytesStaysShort() {
+        XCTAssertEqual(Fmt.compactBytes(0), "0K")
+        XCTAssertEqual(Fmt.compactBytes(840_000), "840K")
+        XCTAssertEqual(Fmt.compactBytes(62_300_000_000), "62G")
+        XCTAssertEqual(Fmt.compactBytes(999_900_000), "1" + (Locale.current.decimalSeparator ?? ".") + "0G")
+    }
+
     func testSmartCleanNeverTouchesTrashOrOptInCategories() {
         let smart = Set(CleanupCatalog.categories.filter(\.isSmartCleanable).map(\.id))
         XCTAssertEqual(smart, ["app-caches", "dev-caches", "browser-caches", "logs"])
