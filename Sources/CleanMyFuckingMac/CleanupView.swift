@@ -11,14 +11,14 @@ struct CleanupView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            PageHeader(title: "Nettoyage", subtitle: "Fichiers que tu peux supprimer sans rien casser.") {
-                Button(state.isCleanScanning ? "Analyse…" : "Réanalyser") { state.scanCleanup() }
+            PageHeader(title: "Cleanup", subtitle: "Files you can delete without breaking anything.") {
+                Button(state.isCleanScanning ? "Scanning…" : "Rescan") { state.scanCleanup() }
                     .buttonStyle(GhostButtonStyle())
                     .disabled(state.isCleanScanning || state.isDeleting)
             }
 
             if state.isCleanScanning && state.cleanResults.isEmpty {
-                EmptyState(symbol: "sparkles", title: "Analyse en cours…", message: "Mesure des caches et journaux.") {
+                EmptyState(symbol: "sparkles", title: "Scanning…", message: "Measuring caches and logs.") {
                     ProgressView().controlSize(.small)
                 }
             } else {
@@ -33,14 +33,14 @@ struct CleanupView: View {
                 footer
             }
         }
-        .confirmationDialog("Nettoyer \(Fmt.bytes(state.cleanSelectedTotal)) ?", isPresented: $confirming) {
-            Button(state.permanentDelete ? "Supprimer définitivement" : "Mettre à la Corbeille", role: .destructive) {
+        .confirmationDialog("Clean \(Fmt.bytes(state.cleanSelectedTotal))?", isPresented: $confirming) {
+            Button(state.permanentDelete ? "Delete permanently" : "Move to Trash", role: .destructive) {
                 Task { await state.cleanSelected() }
             }
         } message: {
             Text(state.permanentDelete
-                 ? "Suppression définitive : impossible à annuler."
-                 : "Les éléments vont dans la Corbeille (sauf le contenu de la Corbeille, supprimé pour de bon).")
+                 ? "Permanent deletion: cannot be undone."
+                 : "Items go to the Trash (except the Trash's own content, deleted for good).")
         }
     }
 
@@ -60,7 +60,7 @@ struct CleanupView: View {
                         Text(result.category.detail).font(.system(size: 12)).foregroundStyle(Theme.secondaryText)
                     }
                     Spacer()
-                    Text(result.items.isEmpty ? "Rien à nettoyer" : Fmt.bytes(result.total))
+                    Text(result.items.isEmpty ? String(localized: "Nothing to clean") : Fmt.bytes(result.total))
                         .font(.system(size: 15, weight: .bold, design: .rounded))
                         .foregroundStyle(result.items.isEmpty ? AnyShapeStyle(Theme.secondaryText) : AnyShapeStyle(.white))
                     if !result.items.isEmpty {
@@ -84,10 +84,10 @@ struct CleanupView: View {
                             Text(Fmt.bytes(item.size)).font(.system(size: 12)).monospacedDigit().foregroundStyle(Theme.secondaryText)
                         }
                         .padding(.leading, 30)
-                        .contextMenu { Button("Afficher dans le Finder") { revealInFinder(item.path) } }
+                        .contextMenu { Button("Show in Finder") { revealInFinder(item.path) } }
                     }
                     if result.items.count > Self.visibleItems {
-                        Text("+ \(result.items.count - Self.visibleItems) autres éléments plus petits")
+                        Text("+ \(result.items.count - Self.visibleItems) more smaller items")
                             .font(.system(size: 11)).foregroundStyle(Theme.secondaryText).padding(.leading, 30)
                     }
                 }
@@ -99,17 +99,17 @@ struct CleanupView: View {
         Card(padding: 14) {
             HStack(spacing: 14) {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Sélection : \(Fmt.bytes(state.cleanSelectedTotal))").font(.system(size: 15, weight: .bold, design: .rounded))
+                    Text("Selection: \(Fmt.bytes(state.cleanSelectedTotal))").font(.system(size: 15, weight: .bold, design: .rounded))
                     if let outcome = state.lastOutcome {
                         Text(outcome).font(.system(size: 12)).foregroundStyle(Theme.mint)
                     }
                 }
                 Spacer()
-                Toggle("Suppression définitive", isOn: $state.permanentDelete)
+                Toggle("Permanent deletion", isOn: $state.permanentDelete)
                     .toggleStyle(.switch).controlSize(.small).font(.system(size: 12))
-                    .help("Désactivé : les éléments vont dans la Corbeille et restent récupérables.")
+                    .help("Off: items go to the Trash and stay recoverable.")
                 if state.isDeleting { ProgressView().controlSize(.small) }
-                Button("Nettoyer") { confirming = true }
+                Button("Clean") { confirming = true }
                     .buttonStyle(AccentButtonStyle())
                     .disabled(state.cleanSelection.isEmpty || state.isDeleting || state.isCleanScanning)
             }

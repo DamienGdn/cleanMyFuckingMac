@@ -127,7 +127,7 @@ public enum DiskScanner {
     /// Turns the accumulated small bytes into one aggregate child and sorts children by size.
     private static func seal(_ node: FileNode) {
         if node.smallBytes > 0 {
-            let aggregate = FileNode(name: "Petits fichiers", path: node.path + "/\u{0}small", isDirectory: false,
+            let aggregate = FileNode(name: String(localized: "Small files"), path: node.path + "/\u{0}small", isDirectory: false,
                                      size: node.smallBytes, isAggregate: true)
             aggregate.parent = node
             node.children.append(aggregate)

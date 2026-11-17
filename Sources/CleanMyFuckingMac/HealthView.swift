@@ -12,9 +12,9 @@ extension HealthKPI.Status {
 
     var label: String {
         switch self {
-        case .good: return "Tout va bien"
-        case .warning: return "À surveiller"
-        case .critical: return "Action requise"
+        case .good: return String(localized: "All good")
+        case .warning: return String(localized: "Needs attention")
+        case .critical: return String(localized: "Action required")
         }
     }
 }
@@ -26,8 +26,8 @@ struct HealthView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            PageHeader(title: "Santé du Mac", subtitle: "\(SystemInfo.modelIdentifier()) · \(ProcessInfo.processInfo.operatingSystemVersionString)") {
-                Button("Actualiser") { monitor.refreshHealth() }.buttonStyle(GhostButtonStyle())
+            PageHeader(title: "Mac Health", subtitle: "\(SystemInfo.modelIdentifier()) · \(ProcessInfo.processInfo.operatingSystemVersionString)") {
+                Button("Refresh") { monitor.refreshHealth() }.buttonStyle(GhostButtonStyle())
             }
             if let report = monitor.health {
                 ScrollView {
@@ -41,7 +41,7 @@ struct HealthView: View {
                                         .rotationEffect(.degrees(-90))
                                     VStack(spacing: 0) {
                                         Text("\(report.score)").font(.system(size: 38, weight: .bold, design: .rounded))
-                                        Text("sur 100").font(.system(size: 11)).foregroundStyle(Theme.secondaryText)
+                                        Text("out of 100").font(.system(size: 11)).foregroundStyle(Theme.secondaryText)
                                     }
                                 }
                                 .frame(width: 130, height: 130)
@@ -50,10 +50,10 @@ struct HealthView: View {
                                         .foregroundStyle(report.worst.color)
                                     let issues = report.kpis.filter { $0.status != .good }
                                     if issues.isEmpty {
-                                        Text("Aucun indicateur en alerte.").font(.system(size: 13)).foregroundStyle(Theme.secondaryText)
+                                        Text("No indicator on alert.").font(.system(size: 13)).foregroundStyle(Theme.secondaryText)
                                     }
                                     ForEach(issues) { kpi in
-                                        Label("\(kpi.title) : \(kpi.detail)", systemImage: "exclamationmark.triangle.fill")
+                                        Label("\(kpi.title): \(kpi.detail)", systemImage: "exclamationmark.triangle.fill")
                                             .font(.system(size: 12)).foregroundStyle(kpi.status.color)
                                     }
                                 }
@@ -82,7 +82,7 @@ struct HealthView: View {
                 }
                 .scrollIndicators(.never)
             } else {
-                EmptyState(symbol: "heart.text.square.fill", title: "Diagnostic en cours…", message: "Lecture de la batterie, du disque et de la mémoire.") {
+                EmptyState(symbol: "heart.text.square.fill", title: "Running diagnostics…", message: "Reading battery, disk and memory.") {
                     ProgressView().controlSize(.small)
                 }
             }

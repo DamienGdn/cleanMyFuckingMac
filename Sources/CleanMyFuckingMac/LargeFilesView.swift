@@ -2,10 +2,25 @@ import CMFMCore
 import SwiftUI
 
 struct LargeFilesView: View {
-    private enum Tab: String, CaseIterable { case large = "Gros et vieux fichiers", duplicates = "Doublons" }
-    private enum Age: String, CaseIterable, Identifiable {
-        case any = "Toutes dates", sixMonths = "Plus de 6 mois", oneYear = "Plus d'un an"
-        var id: String { rawValue }
+    private enum Tab: CaseIterable {
+        case large, duplicates
+        var title: String {
+            switch self {
+            case .large: return String(localized: "Large and old files")
+            case .duplicates: return String(localized: "Duplicates")
+            }
+        }
+    }
+    private enum Age: CaseIterable, Identifiable {
+        case any, sixMonths, oneYear
+        var id: Self { self }
+        var title: String {
+            switch self {
+            case .any: return String(localized: "Any date")
+            case .sixMonths: return String(localized: "Older than 6 months")
+            case .oneYear: return String(localized: "Older than a year")
+            }
+        }
         var cutoff: Date? {
             switch self {
             case .any: return nil
@@ -43,9 +58,9 @@ struct LargeFilesView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            PageHeader(title: "Gros fichiers", subtitle: "Les fichiers lourds, oubliés ou en double.") {
+            PageHeader(title: "Large Files", subtitle: "Heavy, forgotten or duplicate files.") {
                 Picker("", selection: $tab) {
-                    ForEach(Tab.allCases, id: \.self) { Text($0.rawValue).tag($0) }
+                    ForEach(Tab.allCases, id: \.self) { Text($0.title).tag($0) }
                 }
                 .pickerStyle(.segmented).fixedSize()
             }
@@ -54,9 +69,9 @@ struct LargeFilesView: View {
                 Card { ScanProgressRow() }
                 Spacer()
             } else if state.tree == nil {
-                EmptyState(symbol: "doc.on.doc.fill", title: "Analyse nécessaire",
-                           message: "Les gros fichiers et les doublons viennent de l'analyse du disque.") {
-                    Button("Analyser mon dossier personnel") { state.startScan(root: state.home) }.buttonStyle(AccentButtonStyle())
+                EmptyState(symbol: "doc.on.doc.fill", title: "Scan needed",
+                           message: "Large files and duplicates come from the disk scan.") {
+                    Button("Scan My Home Folder") { state.startScan(root: state.home) }.buttonStyle(AccentButtonStyle())
                 }
             } else {
                 if tab == .large { largeList } else { duplicateList }
@@ -64,14 +79,14 @@ struct LargeFilesView: View {
             }
         }
         .onChange(of: tab) { selection = [] }
-        .confirmationDialog("Supprimer \(selectedNodes.count) fichier(s) ?", isPresented: $confirming) {
-            Button(state.permanentDelete ? "Supprimer définitivement" : "Mettre à la Corbeille", role: .destructive) {
+        .confirmationDialog("Delete \(selectedNodes.count) file(s)?", isPresented: $confirming) {
+            Button(state.permanentDelete ? "Delete permanently" : "Move to Trash", role: .destructive) {
                 let nodes = selectedNodes
                 selection = []
                 Task { await state.delete(nodes: nodes) }
             }
         } message: {
-            Text("\(Fmt.bytes(selectedNodes.reduce(0) { $0 + $1.size })) au total.")
+            Text("\(Fmt.bytes(selectedNodes.reduce(0) { $0 + $1.size })) in total.")
         }
     }
 
@@ -79,22 +94,24 @@ struct LargeFilesView: View {
         let files = filtered
         return VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 14) {
-                Picker("Taille", selection: $minimumMB) {
-                    ForEach([50, 100, 500, 1024], id: \.self) { Text($0 >= 1024 ? "≥ 1 Go" : "≥ \($0) Mo").tag($0) }
+                Picker("Size", selection: $minimumMB) {
+                    ForEach([50, 100, 500, 1024], id: \.self) { megabytes in
+                        Text(megabytes >= 1024 ? String(localized: "≥ 1 GB") : String(localized: "≥ \(megabytes) MB")).tag(megabytes)
+                    }
                 }
                 .fixedSize()
-                Picker("Âge", selection: $age) {
-                    ForEach(Age.allCases) { Text($0.rawValue).tag($0) }
+                Picker("Age", selection: $age) {
+                    ForEach(Age.allCases) { Text($0.title).tag($0) }
                 }
                 .fixedSize()
-                Toggle("Inclure fichiers cachés et système", isOn: $includeSystem).font(.system(size: 12))
+                Toggle("Include hidden and system files", isOn: $includeSystem).font(.system(size: 12))
                 Spacer()
-                Text("\(files.count) fichiers · \(Fmt.bytes(files.reduce(0) { $0 + $1.size }))")
+                Text("\(files.count) files · \(Fmt.bytes(files.reduce(0) { $0 + $1.size }))")
                     .font(.system(size: 12)).foregroundStyle(Theme.secondaryText)
             }
             Card(padding: 8) {
                 if files.isEmpty {
-                    Text("Aucun fichier ne correspond à ces filtres.").font(.system(size: 13))
+                    Text("No file matches these filters.").font(.system(size: 13))
                         .foregroundStyle(Theme.secondaryText).frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
                     ScrollView {
@@ -109,18 +126,18 @@ struct LargeFilesView: View {
 
     @ViewBuilder private var duplicateList: some View {
         if state.isFindingDuplicates {
-            EmptyState(symbol: "doc.on.doc.fill", title: "Comparaison des fichiers…",
-                       message: "Calcul des empreintes des fichiers de même taille.") { ProgressView().controlSize(.small) }
+            EmptyState(symbol: "doc.on.doc.fill", title: "Comparing files…",
+                       message: "Hashing files of the same size.") { ProgressView().controlSize(.small) }
         } else if let groups = state.duplicateGroups {
             if groups.isEmpty {
-                EmptyState(symbol: "checkmark.seal.fill", title: "Aucun doublon",
-                           message: "Aucun fichier identique de plus de 1 Mo dans tes documents.") { EmptyView() }
+                EmptyState(symbol: "checkmark.seal.fill", title: "No duplicates",
+                           message: "No identical files over 1 MB in your documents.") { EmptyView() }
             } else {
                 HStack {
-                    Text("\(groups.count) groupes · \(Fmt.bytes(groups.reduce(0) { $0 + $1.wasted })) récupérables")
+                    Text("\(groups.count) groups · \(Fmt.bytes(groups.reduce(0) { $0 + $1.wasted })) reclaimable")
                         .font(.system(size: 12)).foregroundStyle(Theme.secondaryText)
                     Spacer()
-                    Button("Tout sélectionner sauf un exemplaire") {
+                    Button("Select All but One Copy") {
                         selection = Set(groups.flatMap { $0.files.dropFirst().map(\.path) })
                     }
                     .buttonStyle(GhostButtonStyle())
@@ -137,9 +154,9 @@ struct LargeFilesView: View {
                 .scrollIndicators(.never)
             }
         } else {
-            EmptyState(symbol: "doc.on.doc.fill", title: "Chercher les doublons",
-                       message: "Compare le contenu des fichiers de plus de 1 Mo de tes documents. Les dossiers cachés, la bibliothèque et l'intérieur des apps sont ignorés.") {
-                Button("Chercher les doublons") { state.findDuplicates() }.buttonStyle(AccentButtonStyle())
+            EmptyState(symbol: "doc.on.doc.fill", title: "Find duplicates",
+                       message: "Compares the content of files over 1 MB in your documents. Hidden folders, the Library and app bundles are skipped.") {
+                Button("Find Duplicates") { state.findDuplicates() }.buttonStyle(AccentButtonStyle())
             }
         }
     }
@@ -164,14 +181,14 @@ struct LargeFilesView: View {
         .padding(.horizontal, 8)
         .padding(.vertical, 6)
         .contentShape(Rectangle())
-        .contextMenu { Button("Afficher dans le Finder") { revealInFinder(node.path) } }
+        .contextMenu { Button("Show in Finder") { revealInFinder(node.path) } }
     }
 
     private var footer: some View {
         Card(padding: 14) {
             HStack(spacing: 14) {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Sélection : \(Fmt.bytes(selectedNodes.reduce(0) { $0 + $1.size }))")
+                    Text("Selection: \(Fmt.bytes(selectedNodes.reduce(0) { $0 + $1.size }))")
                         .font(.system(size: 15, weight: .bold, design: .rounded))
                     if let outcome = state.lastOutcome {
                         Text(outcome).font(.system(size: 12)).foregroundStyle(Theme.mint)
@@ -179,7 +196,7 @@ struct LargeFilesView: View {
                 }
                 Spacer()
                 if state.isDeleting { ProgressView().controlSize(.small) }
-                Button("Supprimer la sélection") { confirming = true }
+                Button("Delete Selection") { confirming = true }
                     .buttonStyle(AccentButtonStyle())
                     .disabled(selection.isEmpty || state.isDeleting)
             }

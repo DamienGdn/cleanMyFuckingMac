@@ -9,125 +9,137 @@
   <img src="https://img.shields.io/badge/Swift-5.9%2B-ff9e45" alt="Swift 5.9+">
 </p>
 
-Ton Mac est plein et tu ne sais pas pourquoi. **CleanMyFuckingMac** te montre où part l'espace,
-te dit ce qui se supprime sans risque, et surveille la santé de la machine depuis la barre de menus.
-App macOS native en SwiftUI, sans aucune dépendance externe.
+Your Mac is full and you don't know why. **CleanMyFuckingMac** shows where the space goes,
+tells you what can be deleted safely, and keeps an eye on the machine's health from the menu bar.
+Native macOS app in SwiftUI, with no external dependency. English and French, following the Mac's language.
 
-> Projet personnel inspiré des nettoyeurs de disque pour Mac. Aucun lien avec CleanMyMac ni MacPaw.
+> Personal project inspired by Mac disk cleaners. Not affiliated with CleanMyMac or MacPaw.
 
 <p align="center">
-  <img src="docs/screenshots/dashboard.png" alt="Tableau de bord" width="49%">
+  <img src="docs/screenshots/dashboard.png" alt="Dashboard" width="49%">
   <img src="docs/screenshots/lens.png" alt="Space Lens" width="49%">
-  <img src="docs/screenshots/health.png" alt="Santé du Mac" width="49%">
-  <img src="docs/screenshots/cleanup.png" alt="Nettoyage" width="49%">
+  <img src="docs/screenshots/health.png" alt="Mac Health" width="49%">
+  <img src="docs/screenshots/cleanup.png" alt="Cleanup" width="49%">
 </p>
 
-## Fonctionnalités
+## Features
 
-| Écran | Ce qu'il fait |
+| Screen | What it does |
 |---|---|
-| **Tableau de bord** | Jauge disque, Smart Scan et Smart Clean en un clic, plus gros dossiers |
-| **Santé du Mac** | Score sur 100 et KPI : batterie (capacité, cycles, température), SMART du SSD, espace, mémoire, swap, charge, chauffe, uptime |
-| **Space Lens** | Carte (treemap) navigable du disque : plus le bloc est gros, plus il pèse |
-| **Nettoyage** | Caches d'apps, caches développeur (uv, npm, pnpm, Bun, Gradle, pub, Cargo, CocoaPods, Xcode), navigateurs, journaux, modèles IA, Corbeille |
-| **Gros fichiers** | Fichiers de 50 Mo et plus, filtrables par taille et âge ; doublons détectés par contenu (SHA-256) |
-| **Désinstalleur** | Supprime une app et les données qu'elle a laissées dans `~/Library` |
-| **Performance** | Mémoire, processeur, réseau, apps les plus gourmandes, programmes lancés au démarrage |
-| **Journaux** | Tout ce que l'app a fait, suppression par suppression |
-| **Barre de menus** | Panneau rapide : disque, mémoire, CPU, réseau, batterie, top des apps. Reste actif fenêtre fermée (l'icône quitte le Dock, Cmd+Q ne ferme que la fenêtre), lancement à l'ouverture de session en option, alerte sous 10 Go libres |
+| **Dashboard** | Disk gauge, one-click Smart Scan and Smart Clean, biggest folders |
+| **Mac Health** | Score out of 100 and KPIs: battery (capacity, cycles, temperature), SSD SMART status, disk space, memory, swap, CPU load, heat, uptime |
+| **Space Lens** | Browsable treemap of the disk: the bigger the block, the heavier it is |
+| **Cleanup** | App caches, developer caches (uv, npm, pnpm, Bun, Gradle, pub, Cargo, CocoaPods, Xcode), browsers, logs, AI models, Trash |
+| **Large Files** | Files of 50 MB and more, filtered by size and age; duplicates detected by content (SHA-256) |
+| **Uninstaller** | Removes an app and the data it left in `~/Library`. Protected apps (App Store, installed as root) go through Finder, which shows the Touch ID or password prompt |
+| **Performance** | Memory, CPU, network, hungriest apps, programs launched at startup |
+| **Logs** | Everything the app did, deletion by deletion |
+| **Menu bar** | Quick panel: disk, memory, CPU, network, battery, top apps. Keeps running with the window closed (the icon leaves the Dock, Cmd+Q only closes the window), optional launch at login, alert below 10 GB free |
+
+The interface is in English, or in French when French is the Mac's preferred language
+(**System Settings > General > Language & Region**).
 
 ## Installation
 
-### Depuis une release
+### From a release
 
-1. Télécharge `CleanMyFuckingMac-1.2.0.zip` sur la page [Releases](https://github.com/DamienGdn/cleanMyFuckingMac/releases).
-2. Dézippe et glisse l'app dans `/Applications`.
-3. L'app est signée localement, pas notarisée par Apple. Au premier lancement : clic droit sur l'app, **Ouvrir**.
-   Si macOS refuse encore : `xattr -dr com.apple.quarantine /Applications/CleanMyFuckingMac.app`.
+1. Download `CleanMyFuckingMac-1.2.0.zip` from the [Releases](https://github.com/DamienGdn/cleanMyFuckingMac/releases) page.
+2. Unzip it and drag the app into `/Applications`.
+3. The app is signed locally, not notarized by Apple. On first launch: right-click the app, **Open**.
+   If macOS still refuses: `xattr -dr com.apple.quarantine /Applications/CleanMyFuckingMac.app`.
 
-### Depuis les sources
+### From source
 
-Il faut Xcode 16 ou plus récent.
+Requires Xcode 16 or later.
 
 ```bash
 git clone git@github.com:DamienGdn/cleanMyFuckingMac.git
 cd cleanMyFuckingMac
-./scripts/build-app.sh               # produit dist/CleanMyFuckingMac.app
+./scripts/build-app.sh               # builds dist/CleanMyFuckingMac.app
 open dist/CleanMyFuckingMac.app
 ```
 
-### Accès complet au disque
+### Full Disk Access
 
-Sans cette autorisation, macOS cache Mail, Safari, la Corbeille et les données d'apps : les tailles affichées
-sont sous-estimées. Accorde-la dans **Réglages Système > Confidentialité et sécurité > Accès complet au disque**
-(un bandeau dans l'app y mène). Une app compilée soi-même doit la redemander après chaque recompilation.
+Without this permission, macOS hides Mail, Safari, the Trash and app data: the sizes shown are
+underestimated. Grant it in **System Settings > Privacy & Security > Full Disk Access**
+(a banner in the app leads there). A self-built app has to ask for it again after each rebuild.
 
-## Sécurité des suppressions
+### Uninstalling protected apps
 
-Un nettoyeur qui efface le mauvais dossier est pire que pas de nettoyeur. Règles appliquées :
+Some apps (App Store apps, apps installed by a package) belong to the system and cannot be moved by the user
+alone. CleanMyFuckingMac then asks Finder to move them to the Trash: macOS asks once for permission to
+control Finder, then Finder shows its usual Touch ID or password prompt.
 
-- **Une seule porte.** Toute suppression passe par [`SafeRemover`](Sources/CMFMCore/SafeRemover.swift), qui valide le chemin avant d'agir.
-- **Périmètre fermé.** Uniquement des éléments à l'intérieur du dossier personnel, ou une `.app` de `/Applications`. Jamais un dossier racine (`~/Documents`, `~/Library/Caches`…).
-- **Zones interdites.** Trousseaux, iCloud Drive, Mail, Messages, `.ssh`, `.gnupg`, `.aws`, `.kube`.
-- **Corbeille par défaut.** Tout reste récupérable, sauf si tu actives « Suppression définitive ».
-- **Confirmation** avant chaque suppression, avec la taille concernée.
-- **Traçabilité.** Chaque suppression est écrite dans `~/Library/Logs/CleanMyFuckingMac/app.log` (rotation à 2 Mo).
-- L'analyse ne suit jamais les liens symboliques et ne sort jamais du volume analysé.
+## Deletion safety
+
+A cleaner that wipes the wrong folder is worse than no cleaner. Rules enforced:
+
+- **One door.** Every deletion goes through [`SafeRemover`](Sources/CMFMCore/SafeRemover.swift), which validates the path before acting.
+- **Closed perimeter.** Only items inside the home folder, or an `.app` in `/Applications`. Never a root folder (`~/Documents`, `~/Library/Caches`…).
+- **Forbidden areas.** Keychains, iCloud Drive, Mail, Messages, `.ssh`, `.gnupg`, `.aws`, `.kube`.
+- **Trash by default.** Everything stays recoverable, unless you turn on "Permanent deletion".
+- **Confirmation** before each deletion, with the size involved.
+- **Traceability.** Every deletion is written to `~/Library/Logs/CleanMyFuckingMac/app.log` (rotated at 2 MB).
+- Scans never follow symbolic links and never leave the scanned volume.
 
 ## Architecture
 
 ```
 Sources/
-├── CMFMCore/              moteur, sans interface, couvert par les tests
-│   ├── DiskScanner        arbre des tailles, parcours fts parallèle
-│   ├── Treemap            disposition « squarified » pour Space Lens
-│   ├── Cleanup            catalogue des catégories nettoyables
-│   ├── Duplicates         détection de doublons par empreinte
-│   ├── AppInventory       apps installées et fichiers résiduels
-│   ├── SystemInfo         disque, mémoire, CPU, réseau, batterie, processus
-│   ├── Health             KPI et score de santé
-│   ├── SafeRemover        garde-fou des suppressions
-│   └── AppLog             journal en mémoire + fichier rotatif
-├── CleanMyFuckingMac/     application SwiftUI (fenêtre + barre de menus)
-└── cmfm-cli/              moteur en ligne de commande, lecture seule
+├── CMFMCore/              engine, no UI, covered by tests
+│   ├── DiskScanner        size tree, parallel fts traversal
+│   ├── Treemap            squarified layout for Space Lens
+│   ├── Cleanup            catalog of cleanable categories
+│   ├── Duplicates         duplicate detection by hash
+│   ├── AppInventory       installed apps and leftover files
+│   ├── SystemInfo         disk, memory, CPU, network, battery, processes
+│   ├── Health             health KPIs and score
+│   ├── SafeRemover        deletion guard
+│   └── AppLog             in-memory log + rotating file
+├── CleanMyFuckingMac/     SwiftUI app (window + menu bar)
+└── cmfm-cli/              command-line engine, read-only
+Resources/
+└── *.lproj/               translations (English source strings, French table)
 ```
 
-## Développement
+To add a language, create `Resources/<code>.lproj/Localizable.strings` from the French one,
+and add the code to `CFBundleLocalizations` in [`scripts/build-app.sh`](scripts/build-app.sh).
+
+## Development
 
 ```bash
-swift test                                   # tests du moteur
-swift run cmfm-cli scan ~/Downloads          # analyse en ligne de commande (lecture seule)
-swift run cmfm-cli clean                     # ce qui serait nettoyable, sans rien supprimer
-swift run cmfm-cli apps                      # apps installées par taille
+swift test                                   # engine tests
+swift run cmfm-cli scan ~/Downloads          # command-line scan (read-only)
+swift run cmfm-cli clean                     # what could be cleaned, without deleting anything
+swift run cmfm-cli apps                      # installed apps by size
 ```
 
-Captures d'écran automatiques de tous les écrans, sans rien supprimer :
+Automatic screenshots of every screen, without deleting anything (add `-AppleLanguages "(fr)"` for French):
 
 ```bash
 CMFM_SNAPSHOT_DIR=/tmp/captures CMFM_SNAPSHOT_ROOT=~/Downloads \
   dist/CleanMyFuckingMac.app/Contents/MacOS/CleanMyFuckingMac
 ```
 
-Les tests tournent sur GitHub Actions à chaque push et pull request ([workflow](.github/workflows/ci.yml)).
+Tests run on GitHub Actions on every push and pull request ([workflow](.github/workflows/ci.yml)).
 
 ## Version 1.2.0
 
-Détail dans le [CHANGELOG](CHANGELOG.md).
+Details in the [CHANGELOG](CHANGELOG.md).
 
-- **Barre de menus configurable** : jusqu'à 3 valeurs au choix (CPU, RAM, disque libre, débit ↓/↑, batterie), en format compact. Réglage dans le panneau.
+- **Configurable menu bar**: up to 3 values of your choice (CPU, RAM, free disk, ↓/↑ throughput, battery), in compact format. Set it in the panel.
+- **Smart Clean**: cleans safe caches and logs in one click, after confirmation. Never touches the Trash or AI models.
+- **Real service**: with the window closed, the icon leaves the Dock and the app keeps running in the menu bar. Cmd+Q only closes the window; to stop everything, **Quit** in the menu bar panel.
+- **Version shown** in the sidebar and the panel, taken from the git tag at build time.
+- The nine screens above, with logo, splash screen and dark theme.
+- Menu bar service with low-disk alert.
+- Full scan of a 2.7-million-file home folder in about twenty seconds (Apple silicon Mac).
 
-- **Smart Clean** : nettoie en un clic les caches et journaux sans risque, après confirmation. Ne touche jamais à la Corbeille ni aux modèles IA.
-- **Vrai service** : fenêtre fermée, l'icône quitte le Dock et l'app continue dans la barre de menus. Cmd+Q ne ferme que la fenêtre ; pour tout arrêter, **Quitter** dans le panneau de la barre de menus.
-- **Version affichée** dans la barre latérale et le panneau, tirée du tag git au build.
+### Not there yet
 
-- Les neuf écrans ci-dessus, avec logo, écran de démarrage et thème sombre.
-- Service en barre de menus avec alerte disque faible.
-- Analyse complète d'un dossier personnel de 2,7 millions de fichiers en une vingtaine de secondes (Mac Apple silicon).
-
-### Pas encore là
-
-- Antimalware
-- Mise à jour des apps tierces
-- Destructeur de fichiers
-- Nettoyage de la vie privée (historique et cookies des navigateurs)
-- Notarisation Apple
+- Anti-malware
+- Third-party app updates
+- File shredder
+- Privacy cleanup (browser history and cookies)
+- Apple notarization

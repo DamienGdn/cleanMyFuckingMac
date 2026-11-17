@@ -2,6 +2,17 @@
 
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions en [SemVer](https://semver.org/lang/fr/).
 
+## [Non publié]
+
+### Ajouté
+
+- Interface en anglais et en français, choisie selon la langue du Mac (anglais par défaut).
+- Désinstallation des apps protégées (App Store, installées en root) : le Finder prend le relais et affiche la demande Touch ID ou mot de passe. Même chose pour les fichiers protégés du nettoyage.
+
+### Modifié
+
+- README en anglais. Journaux de l'app en anglais.
+
 ## [1.2.0] - 2026-11-13
 
 ### Ajouté

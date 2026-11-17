@@ -11,13 +11,13 @@ struct SpaceLensView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            PageHeader(title: "Space Lens", subtitle: "Carte de ton disque : plus le bloc est gros, plus il pèse.") {
+            PageHeader(title: "Space Lens", subtitle: "Map of your disk: the bigger the block, the heavier it is.") {
                 Menu {
-                    Button("Dossier personnel") { state.startScan(root: state.home) }
-                    Button("Disque entier") { state.startScan(root: AppState.dataVolume) }
-                    Button("Choisir un dossier…") { chooseFolder() }
+                    Button("Home Folder") { state.startScan(root: state.home) }
+                    Button("Entire Disk") { state.startScan(root: AppState.dataVolume) }
+                    Button("Choose a Folder…") { chooseFolder() }
                 } label: {
-                    Label(state.tree == nil ? "Analyser" : "Nouvelle analyse", systemImage: "magnifyingglass")
+                    Label(state.tree == nil ? "Scan" : "New Scan", systemImage: "magnifyingglass")
                 }
                 .menuStyle(.borderlessButton)
                 .fixedSize()
@@ -50,17 +50,17 @@ struct SpaceLensView: View {
                     Text(outcome).font(.system(size: 12)).foregroundStyle(Theme.mint)
                 }
             } else {
-                EmptyState(symbol: "square.grid.3x3.topleft.filled", title: "Rien d'analysé pour l'instant",
-                           message: "Lance une analyse pour voir, dossier par dossier, ce qui remplit ton disque.") {
-                    Button("Analyser mon dossier personnel") { state.startScan(root: state.home) }
+                EmptyState(symbol: "square.grid.3x3.topleft.filled", title: "Nothing scanned yet",
+                           message: "Run a scan to see, folder by folder, what fills your disk.") {
+                    Button("Scan My Home Folder") { state.startScan(root: state.home) }
                         .buttonStyle(AccentButtonStyle())
                 }
             }
         }
-        .confirmationDialog("Supprimer « \(pendingDeletion?.name ?? "") » ?",
+        .confirmationDialog("Delete “\(pendingDeletion?.name ?? "")”?",
                             isPresented: Binding(get: { pendingDeletion != nil }, set: { if !$0 { pendingDeletion = nil } }),
                             presenting: pendingDeletion) { node in
-            Button("Mettre à la Corbeille (\(Fmt.bytes(node.size)))", role: .destructive) {
+            Button("Move to Trash (\(Fmt.bytes(node.size)))", role: .destructive) {
                 Task { await state.delete(nodes: [node], permanent: false) }
             }
         } message: { node in
@@ -87,8 +87,8 @@ struct SpaceLensView: View {
 
     @ViewBuilder private func nodeMenu(_ node: FileNode) -> some View {
         if !node.isAggregate {
-            Button("Afficher dans le Finder") { revealInFinder(node.path) }
-            Button("Mettre à la Corbeille…", role: .destructive) { pendingDeletion = node }
+            Button("Show in Finder") { revealInFinder(node.path) }
+            Button("Move to Trash…", role: .destructive) { pendingDeletion = node }
         }
     }
 
@@ -102,7 +102,7 @@ struct SpaceLensView: View {
         let panel = NSOpenPanel()
         panel.canChooseDirectories = true
         panel.canChooseFiles = false
-        panel.prompt = "Analyser"
+        panel.prompt = String(localized: "Scan")
         if panel.runModal() == .OK, let url = panel.url {
             state.startScan(root: url.path)
         }
@@ -158,8 +158,8 @@ struct TreemapView: View {
             .help("\(node.name) — \(Fmt.bytes(node.size))")
             .contextMenu {
                 if !node.isAggregate {
-                    Button("Afficher dans le Finder") { revealInFinder(node.path) }
-                    Button("Mettre à la Corbeille…", role: .destructive) { onDelete(node) }
+                    Button("Show in Finder") { revealInFinder(node.path) }
+                    Button("Move to Trash…", role: .destructive) { onDelete(node) }
                 }
             }
     }

@@ -67,60 +67,64 @@ public struct HealthReport: Sendable {
         }
 
         let freeShare = inputs.disk.total > 0 ? Double(inputs.disk.free) / Double(inputs.disk.total) : 1
-        add("disk", "Espace disque", "internaldrive.fill", "\(Fmt.bytes(inputs.disk.free)) libres",
-            freeShare < 0.10 ? (.critical, 30, "Moins de 10 % libres : macOS ralentit et les mises à jour échouent.")
-            : freeShare < 0.20 ? (.warning, 12, "Moins de 20 % libres : fais de la place.")
-            : (.good, 0, "\(Int(freeShare * 100)) % du disque est libre."))
+        add("disk", String(localized: "Disk space"), "internaldrive.fill", String(localized: "\(Fmt.bytes(inputs.disk.free)) free"),
+            freeShare < 0.10 ? (.critical, 30, String(localized: "Less than \(10)% free: macOS slows down and updates fail."))
+            : freeShare < 0.20 ? (.warning, 12, String(localized: "Less than \(20)% free: make some room."))
+            : (.good, 0, String(localized: "\(Int(freeShare * 100))% of the disk is free.")))
 
         if let verified = inputs.smartVerified {
-            add("smart", "État du SSD", "checkmark.shield.fill", verified ? "Vérifié" : "Défaillant",
-                verified ? (.good, 0, "Le disque ne signale aucune erreur (SMART).")
-                : (.critical, 40, "Le disque signale des erreurs : sauvegarde tes données maintenant."))
+            add("smart", String(localized: "SSD status"), "checkmark.shield.fill",
+                verified ? String(localized: "Verified") : String(localized: "Failing"),
+                verified ? (.good, 0, String(localized: "The drive reports no errors (SMART)."))
+                : (.critical, 40, String(localized: "The drive reports errors: back up your data now.")))
         }
 
         if let battery = inputs.battery {
-            add("battery-health", "Santé de la batterie", "battery.100", "\(min(100, battery.capacityPercent)) %",
-                battery.capacityPercent < 80 ? (.critical, 20, "Sous 80 % de la capacité d'origine : remplacement conseillé.")
-                : battery.capacityPercent < 90 ? (.warning, 6, "Capacité en baisse, usure normale.")
-                : (.good, 0, "Capacité proche de l'origine."))
-            add("battery-cycles", "Cycles de charge", "arrow.triangle.2.circlepath", "\(battery.cycleCount)",
-                battery.cycleCount > 1000 ? (.warning, 8, "Au-delà des 1000 cycles prévus par Apple.")
-                : (.good, 0, "Sur 1000 cycles prévus par Apple."))
+            add("battery-health", String(localized: "Battery health"), "battery.100", "\(min(100, battery.capacityPercent)) %",
+                battery.capacityPercent < 80 ? (.critical, 20, String(localized: "Below \(80)% of the original capacity: replacement advised."))
+                : battery.capacityPercent < 90 ? (.warning, 6, String(localized: "Capacity declining, normal wear."))
+                : (.good, 0, String(localized: "Capacity close to the original.")))
+            add("battery-cycles", String(localized: "Charge cycles"), "arrow.triangle.2.circlepath", "\(battery.cycleCount)",
+                battery.cycleCount > 1000 ? (.warning, 8, String(localized: "Beyond the 1000 cycles Apple plans for."))
+                : (.good, 0, String(localized: "Out of the 1000 cycles Apple plans for.")))
             if let temperature = battery.temperatureCelsius {
-                add("battery-temperature", "Température batterie", "thermometer.medium", String(format: "%.0f °C", temperature),
-                    temperature > 45 ? (.critical, 10, "Trop chaude : la batterie s'use vite au-dessus de 45 °C.")
-                    : temperature > 38 ? (.warning, 3, "Chaude. Évite les surfaces molles et le plein soleil.")
-                    : (.good, 0, "Température normale."))
+                add("battery-temperature", String(localized: "Battery temperature"), "thermometer.medium",
+                    String(format: "%.0f °C", temperature),
+                    temperature > 45 ? (.critical, 10, String(localized: "Too hot: the battery wears fast above 45 °C."))
+                    : temperature > 38 ? (.warning, 3, String(localized: "Warm. Avoid soft surfaces and direct sunlight."))
+                    : (.good, 0, String(localized: "Normal temperature.")))
             }
         }
 
         let memoryShare = inputs.memory.usedFraction
-        add("memory", "Mémoire", "memorychip.fill", "\(Int((memoryShare * 100).rounded())) % utilisée",
-            memoryShare > 0.92 ? (.critical, 12, "Mémoire saturée : quitte les apps les plus gourmandes.")
-            : memoryShare > 0.82 ? (.warning, 4, "Mémoire bien remplie.")
-            : (.good, 0, "\(Fmt.bytes(inputs.memory.total - inputs.memory.used)) disponibles."))
+        add("memory", String(localized: "Memory"), "memorychip.fill", String(localized: "\(Int((memoryShare * 100).rounded()))% used"),
+            memoryShare > 0.92 ? (.critical, 12, String(localized: "Memory saturated: quit the hungriest apps."))
+            : memoryShare > 0.82 ? (.warning, 4, String(localized: "Memory is filling up."))
+            : (.good, 0, String(localized: "\(Fmt.bytes(inputs.memory.total - inputs.memory.used)) available.")))
 
-        add("swap", "Mémoire d'échange", "arrow.left.arrow.right", Fmt.bytes(inputs.swapUsed),
-            inputs.swapUsed > 8 << 30 ? (.critical, 10, "Le Mac écrit beaucoup de mémoire sur le disque : manque de RAM.")
-            : inputs.swapUsed > 3 << 30 ? (.warning, 4, "Swap notable : trop d'apps ouvertes à la fois.")
-            : (.good, 0, "Peu ou pas de swap."))
+        add("swap", String(localized: "Swap memory"), "arrow.left.arrow.right", Fmt.bytes(inputs.swapUsed),
+            inputs.swapUsed > 8 << 30 ? (.critical, 10, String(localized: "The Mac writes a lot of memory to disk: not enough RAM."))
+            : inputs.swapUsed > 3 << 30 ? (.warning, 4, String(localized: "Notable swap: too many apps open at once."))
+            : (.good, 0, String(localized: "Little or no swap.")))
 
         let loadPerCore = inputs.cores > 0 ? inputs.loadAverage / Double(inputs.cores) : 0
-        add("load", "Charge processeur", "cpu.fill", String(format: "%.1f", inputs.loadAverage),
-            loadPerCore > 1.5 ? (.warning, 5, "Charge moyenne supérieure au nombre de cœurs (\(inputs.cores)).")
-            : (.good, 0, "Charge moyenne sur 1 min, pour \(inputs.cores) cœurs."))
+        add("load", String(localized: "CPU load"), "cpu.fill", String(format: "%.1f", inputs.loadAverage),
+            loadPerCore > 1.5 ? (.warning, 5, String(localized: "Average load above the number of cores (\(inputs.cores))."))
+            : (.good, 0, String(localized: "1-minute average load, for \(inputs.cores) cores.")))
 
+        let heat = String(localized: "Heat")
         switch inputs.thermalPressure {
-        case .nominal: add("thermal", "Chauffe", "flame.fill", "Normale", (.good, 0, "Aucun bridage thermique."))
-        case .fair: add("thermal", "Chauffe", "flame.fill", "Modérée", (.good, 0, "Ventilation active, sans bridage."))
-        case .serious: add("thermal", "Chauffe", "flame.fill", "Élevée", (.warning, 8, "Le système bride les performances."))
-        case .critical: add("thermal", "Chauffe", "flame.fill", "Critique", (.critical, 15, "Bridage fort : laisse le Mac refroidir."))
+        case .nominal: add("thermal", heat, "flame.fill", String(localized: "Normal"), (.good, 0, String(localized: "No thermal throttling.")))
+        case .fair: add("thermal", heat, "flame.fill", String(localized: "Moderate"), (.good, 0, String(localized: "Fans active, no throttling.")))
+        case .serious: add("thermal", heat, "flame.fill", String(localized: "High"), (.warning, 8, String(localized: "The system is throttling performance.")))
+        case .critical: add("thermal", heat, "flame.fill", String(localized: "Critical"), (.critical, 15, String(localized: "Heavy throttling: let the Mac cool down.")))
         }
 
         let days = Int(inputs.uptime / 86_400)
-        add("uptime", "Allumé depuis", "clock.fill", days >= 1 ? "\(days) j" : "\(Int(inputs.uptime / 3600)) h",
-            days > 14 ? (.warning, 4, "Un redémarrage libère mémoire et fichiers temporaires.")
-            : (.good, 0, "Redémarrage récent."))
+        add("uptime", String(localized: "Up for"), "clock.fill",
+            days >= 1 ? String(localized: "\(days) d") : "\(Int(inputs.uptime / 3600)) h",
+            days > 14 ? (.warning, 4, String(localized: "A restart frees memory and temporary files."))
+            : (.good, 0, String(localized: "Recently restarted.")))
 
         self.kpis = kpis
     }

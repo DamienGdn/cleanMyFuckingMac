@@ -48,7 +48,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
         if Self.isQuitting { return .terminateNow }
-        Log.info("app", "Fenêtre fermée, le service reste actif dans la barre de menus")
+        Log.info("app", "Window closed, the service keeps running in the menu bar")
         Self.mainWindows.forEach { $0.close() }
         return .terminateCancel
     }
@@ -118,16 +118,17 @@ struct RootView: View {
             }
         }
         .foregroundStyle(.white)
-        .confirmationDialog("Smart Clean : nettoyer \(Fmt.bytes(state.smartCleanTotal)) ?", isPresented: $state.isConfirmingSmartClean) {
-            Button(state.permanentDelete ? "Supprimer définitivement" : "Mettre à la Corbeille", role: .destructive) {
+        .confirmationDialog("Smart Clean: clean \(Fmt.bytes(state.smartCleanTotal))?", isPresented: $state.isConfirmingSmartClean) {
+            Button(state.permanentDelete ? "Delete permanently" : "Move to Trash", role: .destructive) {
                 Task { await state.smartClean() }
             }
         } message: {
-            Text("Caches d'apps, caches développeur, caches des navigateurs et journaux. "
-                 + (state.permanentDelete ? "Suppression définitive : impossible à annuler." : "Tout part dans la Corbeille."))
+            Text(state.permanentDelete
+                 ? "App caches, developer caches, browser caches and logs. Permanent deletion: cannot be undone."
+                 : "App caches, developer caches, browser caches and logs. Everything goes to the Trash.")
         }
         .task {
-            Log.info("app", "Démarrage de CleanMyFuckingMac \(AppVersion.label)")
+            Log.info("app", "Starting CleanMyFuckingMac \(AppVersion.label)")
             state.refreshSystem()
             state.loadApps()
             state.scanCleanup()
@@ -191,7 +192,7 @@ struct Sidebar: View {
             Spacer()
             VStack(alignment: .leading, spacing: 6) {
                 ProgressView(value: state.disk.usedFraction).tint(Theme.pink)
-                Text("\(Fmt.bytes(state.disk.free)) libres sur \(Fmt.bytes(state.disk.total))")
+                Text("\(Fmt.bytes(state.disk.free)) free of \(Fmt.bytes(state.disk.total))")
                     .font(.system(size: 11)).foregroundStyle(Theme.secondaryText)
                 Text(AppVersion.label)
                     .font(.system(size: 10, weight: .medium)).monospacedDigit().foregroundStyle(Theme.secondaryText.opacity(0.7))
@@ -224,7 +225,7 @@ struct SplashView: View {
                     Text("CleanMy").font(.system(size: 30, weight: .bold, design: .rounded))
                     Text("FuckingMac").font(.system(size: 30, weight: .heavy, design: .rounded)).foregroundStyle(Theme.accent)
                 }
-                Text("On regarde ce qui bouffe ton disque…").font(.system(size: 13)).foregroundStyle(Theme.secondaryText)
+                Text("Looking at what's eating your disk…").font(.system(size: 13)).foregroundStyle(Theme.secondaryText)
             }
             .opacity(appeared ? 1 : 0)
             .offset(y: appeared ? 0 : 12)
@@ -250,7 +251,7 @@ enum IconRenderer {
             renderer.scale = 1
             guard let image = renderer.cgImage,
                   let png = NSBitmapImageRep(cgImage: image).representation(using: .png, properties: [:]) else {
-                FileHandle.standardError.write(Data("Rendu impossible pour \(points)@\(scale)x\n".utf8))
+                FileHandle.standardError.write(Data("Cannot render \(points)@\(scale)x\n".utf8))
                 exit(1)
             }
             let name = scale == 1 ? "icon_\(points)x\(points).png" : "icon_\(points)x\(points)@2x.png"

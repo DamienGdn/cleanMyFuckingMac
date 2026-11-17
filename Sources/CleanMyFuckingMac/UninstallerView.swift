@@ -21,13 +21,13 @@ struct UninstallerView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            PageHeader(title: "Désinstalleur", subtitle: "Supprime une app et tout ce qu'elle a laissé derrière elle.") {
-                TextField("Rechercher", text: $search).textFieldStyle(.roundedBorder).frame(width: 200)
-                Button("Actualiser") { state.loadApps() }.buttonStyle(GhostButtonStyle()).disabled(state.isLoadingApps)
+            PageHeader(title: "Uninstaller", subtitle: "Removes an app and everything it left behind.") {
+                TextField("Search", text: $search).textFieldStyle(.roundedBorder).frame(width: 200)
+                Button("Refresh") { state.loadApps() }.buttonStyle(GhostButtonStyle()).disabled(state.isLoadingApps)
             }
 
             if state.isLoadingApps && state.apps.isEmpty {
-                EmptyState(symbol: "xmark.app.fill", title: "Inventaire des applications…", message: "Mesure de la taille de chaque app.") {
+                EmptyState(symbol: "xmark.app.fill", title: "Listing applications…", message: "Measuring the size of each app.") {
                     ProgressView().controlSize(.small)
                 }
             } else {
@@ -43,14 +43,14 @@ struct UninstallerView: View {
                 }
             }
         }
-        .confirmationDialog("Désinstaller \(selected?.name ?? "") ?", isPresented: $confirming, presenting: selected) { app in
-            Button("Mettre l'app et ses données à la Corbeille", role: .destructive) {
+        .confirmationDialog("Uninstall \(selected?.name ?? "")?", isPresented: $confirming, presenting: selected) { app in
+            Button("Move the App and Its Data to the Trash", role: .destructive) {
                 let items = leftovers
                 selected = nil
                 Task { await state.uninstall(app, leftovers: items) }
             }
         } message: { app in
-            Text("\(Fmt.bytes(app.size + leftovers.reduce(0) { $0 + $1.size })) au total. Récupérable depuis la Corbeille.")
+            Text("\(Fmt.bytes(app.size + leftovers.reduce(0) { $0 + $1.size })) in total. Recoverable from the Trash.")
         }
     }
 
@@ -62,7 +62,7 @@ struct UninstallerView: View {
                 Image(nsImage: NSWorkspace.shared.icon(forFile: app.path)).resizable().frame(width: 30, height: 30)
                 VStack(alignment: .leading, spacing: 1) {
                     Text(app.name).font(.system(size: 13, weight: .medium)).lineLimit(1)
-                    Text(app.lastUsed.map { "Utilisée le \($0.shortLabel)" } ?? "Dernière utilisation inconnue")
+                    Text(app.lastUsed.map { String(localized: "Used on \($0.shortLabel)") } ?? String(localized: "Last use unknown"))
                         .font(.system(size: 11)).foregroundStyle(Theme.secondaryText)
                 }
                 Spacer()
@@ -90,7 +90,7 @@ struct UninstallerView: View {
                         }
                     }
                     Divider().overlay(.white.opacity(0.1))
-                    Text("Sera mis à la Corbeille").font(.system(size: 12, weight: .semibold)).foregroundStyle(Theme.secondaryText)
+                    Text("Will be moved to the Trash").font(.system(size: 12, weight: .semibold)).foregroundStyle(Theme.secondaryText)
                     leftoverRow(label: (app.path as NSString).lastPathComponent, size: app.size)
                     if isLoadingLeftovers {
                         ProgressView().controlSize(.small)
@@ -104,13 +104,16 @@ struct UninstallerView: View {
                     }
                     Divider().overlay(.white.opacity(0.1))
                     if isRunning {
-                        Label("L'app est ouverte : quitte-la avant de la désinstaller.", systemImage: "exclamationmark.triangle.fill")
+                        Label("The app is open: quit it before uninstalling.", systemImage: "exclamationmark.triangle.fill")
                             .font(.system(size: 12)).foregroundStyle(Theme.orange)
+                    } else if !FileManager.default.isWritableFile(atPath: app.path) {
+                        Label("Protected app: macOS will ask for Touch ID or your password.", systemImage: "touchid")
+                            .font(.system(size: 12)).foregroundStyle(Theme.secondaryText)
                     }
                     HStack {
-                        Button("Afficher dans le Finder") { revealInFinder(app.path) }.buttonStyle(GhostButtonStyle())
+                        Button("Show in Finder") { revealInFinder(app.path) }.buttonStyle(GhostButtonStyle())
                         Spacer()
-                        Button("Désinstaller") { confirming = true }
+                        Button("Uninstall") { confirming = true }
                             .buttonStyle(AccentButtonStyle(destructive: true))
                             .disabled(isRunning || isLoadingLeftovers || state.isDeleting)
                     }
@@ -119,8 +122,8 @@ struct UninstallerView: View {
         } else {
             Card {
                 VStack(spacing: 8) {
-                    Text("Choisis une application").font(.system(size: 14, weight: .semibold))
-                    Text(state.lastOutcome ?? "Les apps d'Apple ne sont pas listées.")
+                    Text("Choose an application").font(.system(size: 14, weight: .semibold))
+                    Text(state.lastOutcome ?? String(localized: "Apple's apps are not listed."))
                         .font(.system(size: 12)).foregroundStyle(Theme.secondaryText).multilineTextAlignment(.center)
                 }
                 .frame(maxWidth: .infinity, minHeight: 160)

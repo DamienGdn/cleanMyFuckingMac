@@ -9,18 +9,18 @@ struct DashboardView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                PageHeader(title: "Tableau de bord", subtitle: "Où part ton espace, et ce que tu peux récupérer.") {
+                PageHeader(title: "Dashboard", subtitle: "Where your space goes, and what you can get back.") {
                     Button("Smart Clean") { state.requestSmartClean() }
                         .buttonStyle(GhostButtonStyle())
                         .disabled(isBusy || state.isDeleting)
-                        .help("Nettoie en un clic les caches et journaux sans risque, après confirmation.")
-                    Button(isBusy ? "Analyse en cours…" : "Smart Scan") { state.smartScan() }
+                        .help("Cleans safe caches and logs in one click, after confirmation.")
+                    Button(isBusy ? "Scanning…" : "Smart Scan") { state.smartScan() }
                         .buttonStyle(AccentButtonStyle())
                         .disabled(isBusy)
                 }
 
                 if state.isDeleting {
-                    HStack(spacing: 8) { ProgressView().controlSize(.small); Text("Nettoyage en cours…").font(.system(size: 12)) }
+                    HStack(spacing: 8) { ProgressView().controlSize(.small); Text("Cleaning…").font(.system(size: 12)) }
                 } else if let outcome = state.lastOutcome {
                     Text(outcome).font(.system(size: 12)).foregroundStyle(Theme.mint)
                 }
@@ -35,15 +35,15 @@ struct DashboardView: View {
                                 VStack(spacing: 2) {
                                     Text("\(Int((state.disk.usedFraction * 100).rounded())) %")
                                         .font(.system(size: 30, weight: .bold, design: .rounded))
-                                    Text("utilisé").font(.system(size: 12)).foregroundStyle(Theme.secondaryText)
+                                    Text("used").font(.system(size: 12)).foregroundStyle(Theme.secondaryText)
                                 }
                             }
                             .frame(width: 150, height: 150)
                             VStack(alignment: .leading, spacing: 10) {
                                 Text("Macintosh HD").font(.system(size: 17, weight: .semibold, design: .rounded))
-                                stat("Utilisé", Fmt.bytes(state.disk.used))
-                                stat("Libre", Fmt.bytes(state.disk.free))
-                                stat("Capacité", Fmt.bytes(state.disk.total))
+                                stat("Used", Fmt.bytes(state.disk.used))
+                                stat("Free", Fmt.bytes(state.disk.free))
+                                stat("Capacity", Fmt.bytes(state.disk.total))
                             }
                             Spacer(minLength: 0)
                         }
@@ -51,12 +51,13 @@ struct DashboardView: View {
                     .frame(maxWidth: .infinity)
 
                     VStack(spacing: 14) {
-                        SummaryTile(symbol: "sparkles", title: "Nettoyable",
+                        SummaryTile(symbol: "sparkles", title: "Cleanable",
                                     value: state.isCleanScanning ? "…" : Fmt.bytes(state.cleanableTotal),
-                                    hint: "caches, journaux, corbeille", target: .cleanup)
-                        SummaryTile(symbol: "doc.on.doc.fill", title: "Gros fichiers",
+                                    hint: String(localized: "caches, logs, trash"), target: .cleanup)
+                        SummaryTile(symbol: "doc.on.doc.fill", title: "Large Files",
                                     value: state.tree == nil ? "—" : "\(state.largeFiles.count)",
-                                    hint: state.tree == nil ? "lance un Smart Scan" : "de plus de 50 Mo", target: .files)
+                                    hint: state.tree == nil ? String(localized: "run a Smart Scan") : String(localized: "over 50 MB"),
+                                    target: .files)
                         SummaryTile(symbol: "xmark.app.fill", title: "Applications",
                                     value: state.isLoadingApps ? "…" : "\(state.apps.count)",
                                     hint: Fmt.bytes(state.apps.reduce(0) { $0 + $1.size }), target: .apps)
@@ -70,9 +71,9 @@ struct DashboardView: View {
                     Card {
                         VStack(alignment: .leading, spacing: 12) {
                             HStack {
-                                Text("Ce qui prend le plus de place").font(.system(size: 15, weight: .semibold, design: .rounded))
+                                Text("What takes the most space").font(.system(size: 15, weight: .semibold, design: .rounded))
                                 Spacer()
-                                Button("Explorer dans Space Lens") { state.focus = tree; state.section = .lens }
+                                Button("Explore in Space Lens") { state.focus = tree; state.section = .lens }
                                     .buttonStyle(GhostButtonStyle())
                             }
                             ForEach(Array(tree.children.prefix(8).enumerated()), id: \.element.id) { index, node in
@@ -86,7 +87,7 @@ struct DashboardView: View {
         .scrollIndicators(.never)
     }
 
-    private func stat(_ label: String, _ value: String) -> some View {
+    private func stat(_ label: LocalizedStringKey, _ value: String) -> some View {
         HStack {
             Text(label).foregroundStyle(Theme.secondaryText)
             Spacer()
@@ -105,13 +106,13 @@ struct FullDiskAccessBanner: View {
             HStack(spacing: 12) {
                 Image(systemName: "lock.shield.fill").font(.system(size: 22)).foregroundStyle(Theme.orange)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Accès complet au disque non accordé").font(.system(size: 13, weight: .semibold))
-                    Text("Sans lui, macOS cache Mail, Safari, la Corbeille et les données d'apps : les tailles sont sous-estimées.")
+                    Text("Full Disk Access not granted").font(.system(size: 13, weight: .semibold))
+                    Text("Without it, macOS hides Mail, Safari, the Trash and app data: sizes are underestimated.")
                         .font(.system(size: 12)).foregroundStyle(Theme.secondaryText)
                 }
                 Spacer()
-                Button("Ouvrir les réglages") { state.openFullDiskAccessSettings() }.buttonStyle(GhostButtonStyle())
-                Button("Revérifier") { state.refreshSystem() }.buttonStyle(GhostButtonStyle())
+                Button("Open Settings") { state.openFullDiskAccessSettings() }.buttonStyle(GhostButtonStyle())
+                Button("Check Again") { state.refreshSystem() }.buttonStyle(GhostButtonStyle())
             }
         }
     }
@@ -120,7 +121,7 @@ struct FullDiskAccessBanner: View {
 struct SummaryTile: View {
     @EnvironmentObject private var state: AppState
     let symbol: String
-    let title: String
+    let title: LocalizedStringKey
     let value: String
     let hint: String
     let target: AppSection
@@ -154,12 +155,12 @@ struct ScanProgressRow: View {
             HStack(spacing: 14) {
                 ProgressView().controlSize(.small)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Analyse de \(state.scanRoot)").font(.system(size: 13, weight: .semibold)).lineLimit(1)
-                    Text("\(progress.files.formatted()) fichiers · \(Fmt.bytes(progress.bytes))")
+                    Text("Scanning \(state.scanRoot)").font(.system(size: 13, weight: .semibold)).lineLimit(1)
+                    Text("\(progress.files.formatted()) files · \(Fmt.bytes(progress.bytes))")
                         .font(.system(size: 12)).foregroundStyle(Theme.secondaryText).monospacedDigit()
                 }
                 Spacer()
-                Button("Annuler") { state.cancelScan() }.buttonStyle(GhostButtonStyle())
+                Button("Cancel") { state.cancelScan() }.buttonStyle(GhostButtonStyle())
             }
         }
     }

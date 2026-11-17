@@ -30,10 +30,10 @@ enum MenuBarMetric: String, CaseIterable, Identifiable {
         switch self {
         case .cpu: "CPU"
         case .memory: "RAM"
-        case .disk: "Disque"
-        case .download: "↓ Réseau"
-        case .upload: "↑ Réseau"
-        case .battery: "Batterie"
+        case .disk: String(localized: "Disk")
+        case .download: String(localized: "↓ Network")
+        case .upload: String(localized: "↑ Network")
+        case .battery: String(localized: "Battery")
         }
     }
 }
@@ -161,7 +161,7 @@ final class SystemMonitor: ObservableObject {
                 uptime: ProcessInfo.processInfo.systemUptime, loadAverage: SystemInfo.loadAverage(),
                 cores: ProcessInfo.processInfo.activeProcessorCount, thermalPressure: pressure))
             await MainActor.run {
-                if self.health?.score != report.score { Log.info("santé", "Score de santé : \(report.score)/100") }
+                if self.health?.score != report.score { Log.info("health", "Health score: \(report.score)/100") }
                 self.health = report
             }
         }
@@ -172,13 +172,13 @@ final class SystemMonitor: ObservableObject {
               Bundle.main.bundleIdentifier != nil else { return }
         lowDiskNotified = true
         let free = Fmt.bytes(disk.free)
-        Log.warning("moniteur", "Espace disque faible : \(free) libres")
+        Log.warning("monitor", "Low disk space: \(free) free")
         let center = UNUserNotificationCenter.current()
         center.requestAuthorization(options: [.alert, .sound]) { granted, _ in
             guard granted else { return }
             let content = UNMutableNotificationContent()
-            content.title = "Disque presque plein"
-            content.body = "Il ne reste que \(free). Ouvre CleanMyFuckingMac pour faire de la place."
+            content.title = String(localized: "Disk almost full")
+            content.body = String(localized: "Only \(free) left. Open CleanMyFuckingMac to free up space.")
             center.add(UNNotificationRequest(identifier: "low-disk", content: content, trigger: nil))
         }
     }
@@ -186,9 +186,9 @@ final class SystemMonitor: ObservableObject {
     func setLaunchAtLogin(_ enabled: Bool) {
         do {
             if enabled { try SMAppService.mainApp.register() } else { try SMAppService.mainApp.unregister() }
-            Log.info("moniteur", "Lancement à l'ouverture de session : \(enabled ? "activé" : "désactivé")")
+            Log.info("monitor", "Launch at login: \(enabled ? "on" : "off")")
         } catch {
-            Log.error("moniteur", "Lancement à l'ouverture de session : \(error.localizedDescription)")
+            Log.error("monitor", "Launch at login: \(error.localizedDescription)")
         }
         launchAtLogin = SMAppService.mainApp.status == .enabled
     }
@@ -234,7 +234,10 @@ struct MenuBarLabel: View {
 
 /// The quick panel shown from the menu bar icon.
 struct MenuBarView: View {
-    private enum Ranking: String, CaseIterable { case cpu = "CPU", memory = "Mémoire" }
+    private enum Ranking: CaseIterable {
+        case cpu, memory
+        var title: String { self == .cpu ? "CPU" : String(localized: "Memory") }
+    }
 
     @EnvironmentObject private var state: AppState
     @EnvironmentObject private var monitor: SystemMonitor
@@ -253,17 +256,18 @@ struct MenuBarView: View {
                         Text("CleanMyFuckingMac").font(.system(size: 13, weight: .bold, design: .rounded))
                         Text(AppVersion.label).font(.system(size: 10, weight: .medium)).monospacedDigit().foregroundStyle(Theme.secondaryText)
                     }
-                    Text("Santé \(monitor.health.map { "\($0.score)/100" } ?? "…") · Nettoyable \(state.isCleanScanning ? "…" : Fmt.bytes(state.cleanableTotal))")
+                    Text("Health \(monitor.health.map { "\($0.score)/100" } ?? "…") · Cleanable \(state.isCleanScanning ? "…" : Fmt.bytes(state.cleanableTotal))")
                         .font(.system(size: 11)).foregroundStyle(Theme.secondaryText)
                 }
                 Spacer()
-                Button("Ouvrir") { open(.dashboard) }.buttonStyle(AccentButtonStyle())
+                Button("Open") { open(.dashboard) }.buttonStyle(AccentButtonStyle())
             }
 
             HStack(spacing: 8) {
-                gauge("Disque", fraction: monitor.disk.usedFraction, detail: "\(Fmt.bytes(monitor.disk.free)) libres")
-                gauge("Mémoire", fraction: monitor.memory.usedFraction, detail: Fmt.bytes(monitor.memory.used))
-                gauge("CPU", fraction: monitor.cpu, detail: "\(ProcessInfo.processInfo.activeProcessorCount) cœurs")
+                gauge("Disk", fraction: monitor.disk.usedFraction, detail: String(localized: "\(Fmt.bytes(monitor.disk.free)) free"))
+                gauge("Memory", fraction: monitor.memory.usedFraction, detail: Fmt.bytes(monitor.memory.used))
+                gauge("CPU", fraction: monitor.cpu,
+                      detail: String(localized: "\(ProcessInfo.processInfo.activeProcessorCount) cores"))
             }
 
             HStack(spacing: 8) {
@@ -276,10 +280,10 @@ struct MenuBarView: View {
 
             VStack(alignment: .leading, spacing: 4) {
                 HStack {
-                    Text("Apps les plus gourmandes").font(.system(size: 12, weight: .semibold))
+                    Text("Top apps").font(.system(size: 12, weight: .semibold))
                     Spacer()
                     Picker("", selection: $ranking) {
-                        ForEach(Ranking.allCases, id: \.self) { Text($0.rawValue).tag($0) }
+                        ForEach(Ranking.allCases, id: \.self) { Text($0.title).tag($0) }
                     }
                     .pickerStyle(.segmented).labelsHidden().fixedSize().controlSize(.small)
                 }
@@ -290,13 +294,13 @@ struct MenuBarView: View {
                         Text(ranking == .cpu ? String(format: "%.0f %%", load.cpu) : Fmt.bytes(load.memory))
                             .font(.system(size: 12, weight: .semibold)).monospacedDigit()
                         Button {
-                            Log.info("moniteur", "Demande de fermeture : \(load.name)")
+                            Log.info("monitor", "Quit requested: \(load.name)")
                             load.runningApplication?.terminate()
                         } label: {
                             Image(systemName: "xmark.circle.fill").foregroundStyle(.white.opacity(0.5))
                         }
                         .buttonStyle(.plain)
-                        .help("Quitter \(load.name)")
+                        .help("Quit \(load.name)")
                         .opacity(load.runningApplication == nil ? 0 : 1)
                         .disabled(load.runningApplication == nil)
                     }
@@ -311,12 +315,12 @@ struct MenuBarView: View {
                 Button("Smart Clean") { state.requestSmartClean(); open(.dashboard) }.buttonStyle(GhostButtonStyle())
                     .disabled(state.isCleanScanning || state.isDeleting)
                 Button("Space Lens") { open(.lens) }.buttonStyle(GhostButtonStyle())
-                Button("Santé") { open(.health) }.buttonStyle(GhostButtonStyle())
+                Button("Health") { open(.health) }.buttonStyle(GhostButtonStyle())
                 Spacer()
             }
 
             VStack(alignment: .leading, spacing: 6) {
-                Text("Affiché dans la barre de menus (\(MenuBarMetric.maxShown) max)")
+                Text("Shown in the menu bar (\(MenuBarMetric.maxShown) max)")
                     .font(.system(size: 11)).foregroundStyle(Theme.secondaryText)
                 HStack(spacing: 5) {
                     ForEach(MenuBarMetric.allCases.filter { $0 != .battery || monitor.battery != nil }) { metric in
@@ -334,11 +338,11 @@ struct MenuBarView: View {
 
             Divider().overlay(.white.opacity(0.12))
             HStack {
-                Toggle("Lancer à l'ouverture de session", isOn: Binding(get: { monitor.launchAtLogin },
+                Toggle("Launch at login", isOn: Binding(get: { monitor.launchAtLogin },
                                                                        set: { monitor.setLaunchAtLogin($0) }))
                     .toggleStyle(.switch).controlSize(.mini).font(.system(size: 11))
                 Spacer()
-                Button("Quitter") { AppDelegate.quit() }.buttonStyle(GhostButtonStyle())
+                Button("Quit") { AppDelegate.quit() }.buttonStyle(GhostButtonStyle())
             }
         }
         .padding(14)
@@ -348,7 +352,7 @@ struct MenuBarView: View {
         .preferredColorScheme(.dark)
     }
 
-    private func gauge(_ title: String, fraction: Double, detail: String) -> some View {
+    private func gauge(_ title: LocalizedStringKey, fraction: Double, detail: String) -> some View {
         VStack(spacing: 6) {
             ZStack {
                 RingGauge(fraction: fraction, lineWidth: 6)

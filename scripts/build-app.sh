@@ -19,6 +19,8 @@ cp "$BINARY" "$APP/Contents/MacOS/CleanMyFuckingMac"
 
 "$BINARY" --render-icon "$ICONSET"
 iconutil -c icns -o "$APP/Contents/Resources/AppIcon.icns" "$ICONSET"
+# Translations: macOS picks the one matching the system language, English otherwise.
+cp -R Resources/*.lproj "$APP/Contents/Resources/"
 
 cat > "$APP/Contents/Info.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
@@ -30,6 +32,9 @@ cat > "$APP/Contents/Info.plist" <<PLIST
     <key>CFBundleIdentifier</key><string>local.cleanmyfuckingmac.app</string>
     <key>CFBundleExecutable</key><string>CleanMyFuckingMac</string>
     <key>CFBundleIconFile</key><string>AppIcon</string>
+    <key>CFBundleDevelopmentRegion</key><string>en</string>
+    <key>CFBundleLocalizations</key><array><string>en</string><string>fr</string></array>
+    <key>NSAppleEventsUsageDescription</key><string>CleanMyFuckingMac asks Finder to move protected apps to the Trash, so macOS can ask for Touch ID or your password.</string>
     <key>CFBundlePackageType</key><string>APPL</string>
     <key>CFBundleShortVersionString</key><string>$VERSION</string>
     <key>CFBundleVersion</key><string>$BUILD</string>

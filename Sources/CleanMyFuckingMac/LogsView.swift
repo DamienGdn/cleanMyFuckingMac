@@ -22,23 +22,23 @@ struct LogsView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            PageHeader(title: "Journaux", subtitle: "Tout ce que l'app a fait.") {
-                Picker("Niveau", selection: $minimumLevel) {
+            PageHeader(title: "Logs", subtitle: "Everything the app did.") {
+                Picker("Level", selection: $minimumLevel) {
                     ForEach(AppLog.Level.allCases, id: \.self) { Text($0.rawValue).tag($0) }
                 }
                 .fixedSize()
-                TextField("Filtrer", text: $search).textFieldStyle(.roundedBorder).frame(width: 180)
-                Button("Copier") {
+                TextField("Filter", text: $search).textFieldStyle(.roundedBorder).frame(width: 180)
+                Button("Copy") {
                     NSPasteboard.general.clearContents()
                     NSPasteboard.general.setString(visible.map(line).joined(separator: "\n"), forType: .string)
                 }
                 .buttonStyle(GhostButtonStyle())
-                Button("Fichier dans le Finder") { revealInFinder(AppLog.shared.fileURL.path) }.buttonStyle(GhostButtonStyle())
-                Button("Vider") { confirmingClear = true }.buttonStyle(GhostButtonStyle())
+                Button("Log File in Finder") { revealInFinder(AppLog.shared.fileURL.path) }.buttonStyle(GhostButtonStyle())
+                Button("Clear") { confirmingClear = true }.buttonStyle(GhostButtonStyle())
             }
             Card(padding: 10) {
                 if visible.isEmpty {
-                    Text("Aucune entrée.").font(.system(size: 13)).foregroundStyle(Theme.secondaryText)
+                    Text("No entries.").font(.system(size: 13)).foregroundStyle(Theme.secondaryText)
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
                     ScrollViewReader { proxy in
@@ -63,15 +63,15 @@ struct LogsView: View {
                     }
                 }
             }
-            Text("Fichier : \(AppLog.shared.fileURL.path) (rotation à 2 Mo)")
+            Text("File: \(AppLog.shared.fileURL.path) (rotated at 2 MB)")
                 .font(.system(size: 11)).foregroundStyle(Theme.secondaryText)
         }
         .onAppear { entries = AppLog.shared.snapshot() }
         .onReceive(NotificationCenter.default.publisher(for: AppLog.didChange).receive(on: RunLoop.main)) { _ in
             entries = AppLog.shared.snapshot()
         }
-        .confirmationDialog("Vider les journaux ?", isPresented: $confirmingClear) {
-            Button("Vider et supprimer les fichiers de log", role: .destructive) { AppLog.shared.clear() }
+        .confirmationDialog("Clear the logs?", isPresented: $confirmingClear) {
+            Button("Clear and Delete Log Files", role: .destructive) { AppLog.shared.clear() }
         }
     }
 

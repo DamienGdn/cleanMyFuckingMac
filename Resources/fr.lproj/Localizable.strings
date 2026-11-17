@@ -1,0 +1,242 @@
+/* French translation. Keys are the English source strings; missing keys fall back to English. */
+
+/* Navigation */
+"Dashboard" = "Tableau de bord";
+"Mac Health" = "Santé du Mac";
+"Cleanup" = "Nettoyage";
+"Large Files" = "Gros fichiers";
+"Uninstaller" = "Désinstalleur";
+"Performance" = "Performance";
+"Logs" = "Journaux";
+"%@ free of %@" = "%@ libres sur %@";
+"Looking at what's eating your disk…" = "On regarde ce qui bouffe ton disque…";
+
+/* Common */
+"Delete permanently" = "Supprimer définitivement";
+"Move to Trash" = "Mettre à la Corbeille";
+"Move to Trash…" = "Mettre à la Corbeille…";
+"Move to Trash (%@)" = "Mettre à la Corbeille (%@)";
+"Show in Finder" = "Afficher dans le Finder";
+"Permanent deletion" = "Suppression définitive";
+"Permanent deletion: cannot be undone." = "Suppression définitive : impossible à annuler.";
+"Selection: %@" = "Sélection : %@";
+"%@ in total." = "%@ au total.";
+"Refresh" = "Actualiser";
+"Cancel" = "Annuler";
+"Scan" = "Analyser";
+"Scanning…" = "Analyse en cours…";
+"Scanning %@" = "Analyse de %@";
+"Scan My Home Folder" = "Analyser mon dossier personnel";
+"%@ files · %@" = "%@ fichiers · %@";
+"%lld files · %@" = "%lld fichiers · %@";
+"Memory" = "Mémoire";
+"Disk" = "Disque";
+"Quit" = "Quitter";
+"Quit %@" = "Quitter %@";
+"Open" = "Ouvrir";
+"Health" = "Santé";
+"%@ free" = "%@ libres";
+"%@: %@" = "%@ : %@";
+
+/* Smart Clean, deletion outcome */
+"Smart Clean: clean %@?" = "Smart Clean : nettoyer %@ ?";
+"App caches, developer caches, browser caches and logs. Permanent deletion: cannot be undone." = "Caches d'apps, caches développeur, caches des navigateurs et journaux. Suppression définitive : impossible à annuler.";
+"App caches, developer caches, browser caches and logs. Everything goes to the Trash." = "Caches d'apps, caches développeur, caches des navigateurs et journaux. Tout part dans la Corbeille.";
+"Smart Clean: nothing to clean." = "Smart Clean : rien à nettoyer.";
+"%@ processed, %lld item(s)." = "%@ traités, %lld élément(s).";
+"Empty the Trash to reclaim the space." = "Vide la Corbeille pour récupérer l'espace.";
+"%lld error(s), see Logs." = "%lld erreur(s), voir Journaux.";
+"Finder did not move it to the Trash." = "Le Finder ne l'a pas mis à la Corbeille.";
+"Finder could not move the items to the Trash: %@" = "Le Finder n'a pas pu mettre les éléments à la Corbeille : %@";
+"Deletion refused (%@): %@" = "Suppression refusée (%@) : %@";
+"invalid path" = "chemin invalide";
+"only apps in /Applications are allowed" = "seules les apps de /Applications sont autorisées";
+"outside the home folder" = "hors du dossier personnel";
+"protected root folder" = "dossier racine protégé";
+"protected sensitive area" = "zone sensible protégée";
+
+/* Dashboard */
+"Where your space goes, and what you can get back." = "Où part ton espace, et ce que tu peux récupérer.";
+"Cleans safe caches and logs in one click, after confirmation." = "Nettoie en un clic les caches et journaux sans risque, après confirmation.";
+"Cleaning…" = "Nettoyage en cours…";
+"used" = "utilisé";
+"Used" = "Utilisé";
+"Free" = "Libre";
+"Capacity" = "Capacité";
+"Cleanable" = "Nettoyable";
+"caches, logs, trash" = "caches, journaux, corbeille";
+"run a Smart Scan" = "lance un Smart Scan";
+"over 50 MB" = "de plus de 50 Mo";
+"What takes the most space" = "Ce qui prend le plus de place";
+"Explore in Space Lens" = "Explorer dans Space Lens";
+"Full Disk Access not granted" = "Accès complet au disque non accordé";
+"Without it, macOS hides Mail, Safari, the Trash and app data: sizes are underestimated." = "Sans lui, macOS cache Mail, Safari, la Corbeille et les données d'apps : les tailles sont sous-estimées.";
+"Open Settings" = "Ouvrir les réglages";
+"Check Again" = "Revérifier";
+
+/* Cleanup */
+"Files you can delete without breaking anything." = "Fichiers que tu peux supprimer sans rien casser.";
+"Rescan" = "Réanalyser";
+"Measuring caches and logs." = "Mesure des caches et journaux.";
+"Clean %@?" = "Nettoyer %@ ?";
+"Items go to the Trash (except the Trash's own content, deleted for good)." = "Les éléments vont dans la Corbeille (sauf le contenu de la Corbeille, supprimé pour de bon).";
+"Nothing to clean" = "Rien à nettoyer";
+"+ %lld more smaller items" = "+ %lld autres éléments plus petits";
+"Off: items go to the Trash and stay recoverable." = "Désactivé : les éléments vont dans la Corbeille et restent récupérables.";
+"Clean" = "Nettoyer";
+"App caches" = "Caches d'applications";
+"Temporary files that apps recreate automatically." = "Fichiers temporaires recréés automatiquement par les apps.";
+"Developer caches" = "Caches développeur";
+"Downloaded packages and intermediate builds. Downloaded again when needed." = "Paquets téléchargés et builds intermédiaires. Retéléchargés au besoin.";
+"iOS Simulator" = "Simulateur iOS";
+"Deep browser caches" = "Caches profonds des navigateurs";
+"Site and code caches. Sessions, passwords and history are kept." = "Caches de sites et de code. Sessions, mots de passe et historique conservés.";
+"Application log files." = "Fichiers de log des applications.";
+"Downloaded AI models" = "Modèles IA téléchargés";
+"Hugging Face, Ollama, Torch and Chrome models. Download them again if you need them." = "Modèles Hugging Face, Ollama, Torch, Chrome. À retélécharger si tu t'en ressers.";
+"Chrome (built-in Gemini model)" = "Chrome (modèle Gemini embarqué)";
+"Trash" = "Corbeille";
+
+/* Health */
+"All good" = "Tout va bien";
+"Needs attention" = "À surveiller";
+"Action required" = "Action requise";
+"out of 100" = "sur 100";
+"No indicator on alert." = "Aucun indicateur en alerte.";
+"Running diagnostics…" = "Diagnostic en cours…";
+"Reading battery, disk and memory." = "Lecture de la batterie, du disque et de la mémoire.";
+"Disk space" = "Espace disque";
+"Less than %lld%% free: macOS slows down and updates fail." = "Moins de %lld %% libres : macOS ralentit et les mises à jour échouent.";
+"Less than %lld%% free: make some room." = "Moins de %lld %% libres : fais de la place.";
+"%lld%% of the disk is free." = "%lld %% du disque est libre.";
+"SSD status" = "État du SSD";
+"Verified" = "Vérifié";
+"Failing" = "Défaillant";
+"The drive reports no errors (SMART)." = "Le disque ne signale aucune erreur (SMART).";
+"The drive reports errors: back up your data now." = "Le disque signale des erreurs : sauvegarde tes données maintenant.";
+"Battery health" = "Santé de la batterie";
+"Below %lld%% of the original capacity: replacement advised." = "Sous %lld %% de la capacité d'origine : remplacement conseillé.";
+"Capacity declining, normal wear." = "Capacité en baisse, usure normale.";
+"Capacity close to the original." = "Capacité proche de l'origine.";
+"Charge cycles" = "Cycles de charge";
+"Beyond the 1000 cycles Apple plans for." = "Au-delà des 1000 cycles prévus par Apple.";
+"Out of the 1000 cycles Apple plans for." = "Sur 1000 cycles prévus par Apple.";
+"Battery temperature" = "Température batterie";
+"Too hot: the battery wears fast above 45 °C." = "Trop chaude : la batterie s'use vite au-dessus de 45 °C.";
+"Warm. Avoid soft surfaces and direct sunlight." = "Chaude. Évite les surfaces molles et le plein soleil.";
+"Normal temperature." = "Température normale.";
+"%lld%% used" = "%lld %% utilisée";
+"Memory saturated: quit the hungriest apps." = "Mémoire saturée : quitte les apps les plus gourmandes.";
+"Memory is filling up." = "Mémoire bien remplie.";
+"%@ available." = "%@ disponibles.";
+"Swap memory" = "Mémoire d'échange";
+"The Mac writes a lot of memory to disk: not enough RAM." = "Le Mac écrit beaucoup de mémoire sur le disque : manque de RAM.";
+"Notable swap: too many apps open at once." = "Swap notable : trop d'apps ouvertes à la fois.";
+"Little or no swap." = "Peu ou pas de swap.";
+"CPU load" = "Charge processeur";
+"Average load above the number of cores (%lld)." = "Charge moyenne supérieure au nombre de cœurs (%lld).";
+"1-minute average load, for %lld cores." = "Charge moyenne sur 1 min, pour %lld cœurs.";
+"Heat" = "Chauffe";
+"Normal" = "Normale";
+"No thermal throttling." = "Aucun bridage thermique.";
+"Moderate" = "Modérée";
+"Fans active, no throttling." = "Ventilation active, sans bridage.";
+"High" = "Élevée";
+"The system is throttling performance." = "Le système bride les performances.";
+"Critical" = "Critique";
+"Heavy throttling: let the Mac cool down." = "Bridage fort : laisse le Mac refroidir.";
+"Up for" = "Allumé depuis";
+"%lld d" = "%lld j";
+"A restart frees memory and temporary files." = "Un redémarrage libère mémoire et fichiers temporaires.";
+"Recently restarted." = "Redémarrage récent.";
+
+/* Large files */
+"Large and old files" = "Gros et vieux fichiers";
+"Duplicates" = "Doublons";
+"Any date" = "Toutes dates";
+"Older than 6 months" = "Plus de 6 mois";
+"Older than a year" = "Plus d'un an";
+"Heavy, forgotten or duplicate files." = "Les fichiers lourds, oubliés ou en double.";
+"Scan needed" = "Analyse nécessaire";
+"Large files and duplicates come from the disk scan." = "Les gros fichiers et les doublons viennent de l'analyse du disque.";
+"Delete %lld file(s)?" = "Supprimer %lld fichier(s) ?";
+"Size" = "Taille";
+"≥ 1 GB" = "≥ 1 Go";
+"≥ %lld MB" = "≥ %lld Mo";
+"Age" = "Âge";
+"Include hidden and system files" = "Inclure fichiers cachés et système";
+"No file matches these filters." = "Aucun fichier ne correspond à ces filtres.";
+"Comparing files…" = "Comparaison des fichiers…";
+"Hashing files of the same size." = "Calcul des empreintes des fichiers de même taille.";
+"No duplicates" = "Aucun doublon";
+"No identical files over 1 MB in your documents." = "Aucun fichier identique de plus de 1 Mo dans tes documents.";
+"%lld groups · %@ reclaimable" = "%lld groupes · %@ récupérables";
+"Select All but One Copy" = "Tout sélectionner sauf un exemplaire";
+"Find duplicates" = "Chercher les doublons";
+"Find Duplicates" = "Chercher les doublons";
+"Compares the content of files over 1 MB in your documents. Hidden folders, the Library and app bundles are skipped." = "Compare le contenu des fichiers de plus de 1 Mo de tes documents. Les dossiers cachés, la bibliothèque et l'intérieur des apps sont ignorés.";
+"Delete Selection" = "Supprimer la sélection";
+"Small files" = "Petits fichiers";
+
+/* Logs */
+"Everything the app did." = "Tout ce que l'app a fait.";
+"Level" = "Niveau";
+"Filter" = "Filtrer";
+"Copy" = "Copier";
+"Log File in Finder" = "Fichier dans le Finder";
+"Clear" = "Vider";
+"No entries." = "Aucune entrée.";
+"File: %@ (rotated at 2 MB)" = "Fichier : %@ (rotation à 2 Mo)";
+"Clear the logs?" = "Vider les journaux ?";
+"Clear and Delete Log Files" = "Vider et supprimer les fichiers de log";
+
+/* Performance */
+"Memory, hungry processes and startup programs." = "Mémoire, processus gourmands et programmes lancés au démarrage.";
+"%@\nof %@" = "%@\nsur %@";
+"Processor" = "Processeur";
+"Most memory-hungry apps" = "Apps les plus gourmandes en mémoire";
+"Launched at startup (%lld)" = "Lancés au démarrage (%lld)";
+"Remove “%@” from startup?" = "Retirer « %@ » du démarrage ?";
+"The file %@ goes to the Trash. Takes effect at next login." = "Le fichier %@ va dans la Corbeille. Effet au prochain démarrage de session.";
+"User agent" = "Agent utilisateur";
+"System agent (admin rights required)" = "Agent système (droits admin requis)";
+"Remove" = "Retirer";
+
+/* Space Lens */
+"Map of your disk: the bigger the block, the heavier it is." = "Carte de ton disque : plus le bloc est gros, plus il pèse.";
+"Home Folder" = "Dossier personnel";
+"Entire Disk" = "Disque entier";
+"Choose a Folder…" = "Choisir un dossier…";
+"New Scan" = "Nouvelle analyse";
+"Nothing scanned yet" = "Rien d'analysé pour l'instant";
+"Run a scan to see, folder by folder, what fills your disk." = "Lance une analyse pour voir, dossier par dossier, ce qui remplit ton disque.";
+"Delete “%@”?" = "Supprimer « %@ » ?";
+
+/* Menu bar */
+"↓ Network" = "↓ Réseau";
+"↑ Network" = "↑ Réseau";
+"Battery" = "Batterie";
+"Disk almost full" = "Disque presque plein";
+"Only %@ left. Open CleanMyFuckingMac to free up space." = "Il ne reste que %@. Ouvre CleanMyFuckingMac pour faire de la place.";
+"Health %@ · Cleanable %@" = "Santé %@ · Nettoyable %@";
+"%lld cores" = "%lld cœurs";
+"Top apps" = "Apps les plus gourmandes";
+"Shown in the menu bar (%lld max)" = "Affiché dans la barre de menus (%lld max)";
+"Launch at login" = "Lancer à l'ouverture de session";
+
+/* Uninstaller */
+"Removes an app and everything it left behind." = "Supprime une app et tout ce qu'elle a laissé derrière elle.";
+"Search" = "Rechercher";
+"Listing applications…" = "Inventaire des applications…";
+"Measuring the size of each app." = "Mesure de la taille de chaque app.";
+"Uninstall %@?" = "Désinstaller %@ ?";
+"Move the App and Its Data to the Trash" = "Mettre l'app et ses données à la Corbeille";
+"%@ in total. Recoverable from the Trash." = "%@ au total. Récupérable depuis la Corbeille.";
+"Used on %@" = "Utilisée le %@";
+"Last use unknown" = "Dernière utilisation inconnue";
+"Will be moved to the Trash" = "Sera mis à la Corbeille";
+"The app is open: quit it before uninstalling." = "L'app est ouverte : quitte-la avant de la désinstaller.";
+"Protected app: macOS will ask for Touch ID or your password." = "App protégée : macOS demandera Touch ID ou ton mot de passe.";
+"Uninstall" = "Désinstaller";
+"Choose an application" = "Choisis une application";
+"Apple's apps are not listed." = "Les apps d'Apple ne sont pas listées.";

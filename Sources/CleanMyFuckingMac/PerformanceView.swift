@@ -10,20 +10,20 @@ struct PerformanceView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            PageHeader(title: "Performance", subtitle: "Mémoire, processus gourmands et programmes lancés au démarrage.") {
+            PageHeader(title: "Performance", subtitle: "Memory, hungry processes and startup programs.") {
                 EmptyView()
             }
             HStack(alignment: .top, spacing: 16) {
                 VStack(spacing: 16) {
                     HStack(spacing: 16) {
-                        gaugeCard("Mémoire", fraction: monitor.memory.usedFraction,
-                                  detail: "\(Fmt.bytes(monitor.memory.used))\nsur \(Fmt.bytes(monitor.memory.total))")
-                        gaugeCard("Processeur", fraction: monitor.cpu,
+                        gaugeCard("Memory", fraction: monitor.memory.usedFraction,
+                                  detail: String(localized: "\(Fmt.bytes(monitor.memory.used))\nof \(Fmt.bytes(monitor.memory.total))"))
+                        gaugeCard("Processor", fraction: monitor.cpu,
                                   detail: "↓ \(MenuBarView.rate(monitor.downloadRate))\n↑ \(MenuBarView.rate(monitor.uploadRate))")
                     }
                     Card(padding: 12) {
                         VStack(alignment: .leading, spacing: 6) {
-                            Text("Apps les plus gourmandes en mémoire").font(.system(size: 13, weight: .semibold)).padding(.leading, 4)
+                            Text("Most memory-hungry apps").font(.system(size: 13, weight: .semibold)).padding(.leading, 4)
                             ScrollView {
                                 LazyVStack(spacing: 0) { ForEach(monitor.topByMemory) { loadRow($0) } }
                             }
@@ -32,7 +32,7 @@ struct PerformanceView: View {
                 }
                 Card(padding: 12) {
                     VStack(alignment: .leading, spacing: 6) {
-                        Text("Lancés au démarrage (\(launchItems.count))").font(.system(size: 13, weight: .semibold)).padding(.leading, 4)
+                        Text("Launched at startup (\(launchItems.count))").font(.system(size: 13, weight: .semibold)).padding(.leading, 4)
                         ScrollView {
                             LazyVStack(spacing: 0) { ForEach(launchItems) { launchRow($0) } }
                         }
@@ -44,21 +44,21 @@ struct PerformanceView: View {
         .task {
             launchItems = SystemInfo.launchItems(home: state.home)
         }
-        .confirmationDialog("Retirer « \(pendingRemoval?.label ?? "") » du démarrage ?",
+        .confirmationDialog("Remove “\(pendingRemoval?.label ?? "")” from startup?",
                             isPresented: Binding(get: { pendingRemoval != nil }, set: { if !$0 { pendingRemoval = nil } }),
                             presenting: pendingRemoval) { item in
-            Button("Mettre à la Corbeille", role: .destructive) {
+            Button("Move to Trash", role: .destructive) {
                 Task {
                     let outcome = await state.delete([DeletionRequest(path: item.path, size: 0, permanent: false)])
                     if outcome.removed.contains(item.path) { launchItems.removeAll { $0.id == item.id } }
                 }
             }
         } message: { item in
-            Text("Le fichier \(item.path) va dans la Corbeille. Effet au prochain démarrage de session.")
+            Text("The file \(item.path) goes to the Trash. Takes effect at next login.")
         }
     }
 
-    private func gaugeCard(_ title: String, fraction: Double, detail: String) -> some View {
+    private func gaugeCard(_ title: LocalizedStringKey, fraction: Double, detail: String) -> some View {
         Card {
             HStack(spacing: 14) {
                 ZStack {
@@ -83,8 +83,8 @@ struct PerformanceView: View {
             Spacer()
             Text(String(format: "%.0f %% CPU", load.cpu)).font(.system(size: 11)).monospacedDigit().foregroundStyle(Theme.secondaryText)
             Text(Fmt.bytes(load.memory)).font(.system(size: 12, weight: .semibold)).monospacedDigit().frame(width: 78, alignment: .trailing)
-            Button("Quitter") {
-                Log.info("performance", "Demande de fermeture : \(load.name)")
+            Button("Quit") {
+                Log.info("performance", "Quit requested: \(load.name)")
                 app?.terminate()
             }
             .buttonStyle(GhostButtonStyle())
@@ -99,7 +99,7 @@ struct PerformanceView: View {
         HStack(spacing: 10) {
             Image(systemName: item.isUserOwned ? "person.fill" : "gearshape.2.fill")
                 .foregroundStyle(item.isUserOwned ? Theme.mint : Theme.secondaryText).frame(width: 18)
-                .help(item.isUserOwned ? "Agent utilisateur" : "Agent système (droits admin requis)")
+                .help(item.isUserOwned ? "User agent" : "System agent (admin rights required)")
             VStack(alignment: .leading, spacing: 1) {
                 Text(item.label).font(.system(size: 12, weight: .medium)).lineLimit(1).truncationMode(.middle)
                 Text(item.program).font(.system(size: 10)).foregroundStyle(Theme.secondaryText).lineLimit(1).truncationMode(.head)
@@ -107,7 +107,7 @@ struct PerformanceView: View {
             Spacer()
             Button("Finder") { revealInFinder(item.path) }.buttonStyle(GhostButtonStyle())
             if item.isUserOwned {
-                Button("Retirer") { pendingRemoval = item }.buttonStyle(GhostButtonStyle())
+                Button("Remove") { pendingRemoval = item }.buttonStyle(GhostButtonStyle())
             }
         }
         .padding(.horizontal, 4)

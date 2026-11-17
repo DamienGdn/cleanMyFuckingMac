@@ -8,14 +8,14 @@ enum AppSection: String, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .dashboard: return "Tableau de bord"
-        case .health: return "Santé du Mac"
+        case .dashboard: return String(localized: "Dashboard")
+        case .health: return String(localized: "Mac Health")
         case .lens: return "Space Lens"
-        case .cleanup: return "Nettoyage"
-        case .files: return "Gros fichiers"
-        case .apps: return "Désinstalleur"
-        case .performance: return "Performance"
-        case .logs: return "Journaux"
+        case .cleanup: return String(localized: "Cleanup")
+        case .files: return String(localized: "Large Files")
+        case .apps: return String(localized: "Uninstaller")
+        case .performance: return String(localized: "Performance")
+        case .logs: return String(localized: "Logs")
         }
     }
 
@@ -121,7 +121,7 @@ final class AppState: ObservableObject {
         scanProgress = progress
         isScanning = true
         duplicateGroups = nil
-        Log.info("scan", "Analyse de \(target)")
+        Log.info("scan", "Scanning \(target)")
         Task.detached(priority: .userInitiated) {
             let start = Date()
             let result = DiskScanner.scan(root: target, progress: progress)
@@ -129,7 +129,7 @@ final class AppState: ObservableObject {
             await MainActor.run {
                 self.isScanning = false
                 guard let result else {
-                    Log.warning("scan", progress.isCancelled ? "Analyse annulée" : "Lecture impossible : \(target)")
+                    Log.warning("scan", progress.isCancelled ? "Scan cancelled" : "Cannot read \(target)")
                     return
                 }
                 self.tree = result
@@ -137,7 +137,7 @@ final class AppState: ObservableObject {
                 self.largeFiles = large
                 self.treeVersion += 1
                 let seconds = String(format: "%.1f", Date().timeIntervalSince(start))
-                Log.info("scan", "Analyse terminée : \(Fmt.bytes(result.size)), \(result.fileCount) fichiers, \(seconds) s")
+                Log.info("scan", "Scan done: \(Fmt.bytes(result.size)), \(result.fileCount) files, \(seconds) s")
             }
         }
     }
@@ -161,7 +161,7 @@ final class AppState: ObservableObject {
         cleanResults = results
         cleanSelection = Set(results.filter { $0.category.selectedByDefault }.flatMap(\.items).map(\.path))
         isCleanScanning = false
-        Log.info("nettoyage", "Analyse : \(Fmt.bytes(cleanableTotal)) nettoyables")
+        Log.info("cleanup", "Scan: \(Fmt.bytes(cleanableTotal)) cleanable")
     }
 
     func cleanSelected() async {
@@ -173,12 +173,12 @@ final class AppState: ObservableObject {
         guard !isCleanScanning, !isDeleting else { return }
         Task {
             await rescanCleanup()
-            if smartCleanTotal > 0 { isConfirmingSmartClean = true } else { lastOutcome = "Smart Clean : rien à nettoyer." }
+            if smartCleanTotal > 0 { isConfirmingSmartClean = true } else { lastOutcome = String(localized: "Smart Clean: nothing to clean.") }
         }
     }
 
     func smartClean() async {
-        Log.info("nettoyage", "Smart Clean : \(Fmt.bytes(smartCleanTotal))")
+        Log.info("cleanup", "Smart Clean: \(Fmt.bytes(smartCleanTotal))")
         await clean { result, _ in result.category.isSmartCleanable }
     }
 
@@ -198,6 +198,8 @@ final class AppState: ObservableObject {
     // MARK: Deletion
 
     /// The only way the app deletes anything: validated by SafeRemover, logged one by one.
+    /// Items the user may not move alone (root-owned apps, for instance) are handed to Finder,
+    /// which shows the system's Touch ID or password prompt.
     @discardableResult
     func delete(_ requests: [DeletionRequest]) async -> DeletionOutcome {
         guard !requests.isEmpty, !isDeleting else { return DeletionOutcome() }
@@ -205,15 +207,39 @@ final class AppState: ObservableObject {
         let remover = remover
         let outcome = await Task.detached(priority: .userInitiated) {
             var outcome = DeletionOutcome()
+            func succeeded(_ request: DeletionRequest, how: String) {
+                outcome.freed += request.size
+                outcome.removed.insert(request.path)
+                Log.info("deletion", "\(how): \(request.path) (\(Fmt.bytes(request.size)))")
+            }
+            func failed(_ request: DeletionRequest, _ message: String) {
+                outcome.errors.append(message)
+                Log.error("deletion", "\(request.path): \(message)")
+            }
+            var protected: [DeletionRequest] = []
             for request in requests {
                 do {
                     try remover.remove(request.path, permanent: request.permanent)
-                    outcome.freed += request.size
-                    outcome.removed.insert(request.path)
-                    Log.info("suppression", "\(request.permanent ? "Supprimé" : "Corbeille") : \(request.path) (\(Fmt.bytes(request.size)))")
+                    succeeded(request, how: request.permanent ? "Deleted" : "Trashed")
+                } catch where !request.permanent && SafeRemover.isPermissionDenied(error) {
+                    protected.append(request)
                 } catch {
-                    outcome.errors.append(error.localizedDescription)
-                    Log.error("suppression", "\(request.path) : \(error.localizedDescription)")
+                    failed(request, error.localizedDescription)
+                }
+            }
+            if !protected.isEmpty {
+                Log.info("deletion", "\(protected.count) protected item(s): asking Finder, which requests authorization")
+                do {
+                    let trashed = try remover.trashWithFinder(protected.map(\.path))
+                    for request in protected {
+                        if trashed.contains(request.path) {
+                            succeeded(request, how: "Trashed by Finder")
+                        } else {
+                            failed(request, String(localized: "Finder did not move it to the Trash."))
+                        }
+                    }
+                } catch {
+                    protected.forEach { failed($0, error.localizedDescription) }
                 }
             }
             return outcome
@@ -222,10 +248,10 @@ final class AppState: ObservableObject {
         refreshSystem()
 
         let trashed = requests.contains { !$0.permanent && outcome.removed.contains($0.path) }
-        var summary = "\(Fmt.bytes(outcome.freed)) traités, \(outcome.removed.count) élément(s)."
-        if trashed { summary += " Vide la Corbeille pour récupérer l'espace." }
-        if !outcome.errors.isEmpty { summary += " \(outcome.errors.count) erreur(s), voir Journaux." }
-        lastOutcome = summary
+        var summary = [String(localized: "\(Fmt.bytes(outcome.freed)) processed, \(outcome.removed.count) item(s).")]
+        if trashed { summary.append(String(localized: "Empty the Trash to reclaim the space.")) }
+        if !outcome.errors.isEmpty { summary.append(String(localized: "\(outcome.errors.count) error(s), see Logs.")) }
+        lastOutcome = summary.joined(separator: " ")
         return outcome
     }
 
@@ -261,7 +287,7 @@ final class AppState: ObservableObject {
             await MainActor.run {
                 self.duplicateGroups = groups
                 self.isFindingDuplicates = false
-                Log.info("doublons", "\(groups.count) groupe(s), \(Fmt.bytes(groups.reduce(0) { $0 + $1.wasted })) récupérables")
+                Log.info("duplicates", "\(groups.count) group(s), \(Fmt.bytes(groups.reduce(0) { $0 + $1.wasted })) reclaimable")
             }
         }
     }
@@ -277,7 +303,7 @@ final class AppState: ObservableObject {
             await MainActor.run {
                 self.apps = apps
                 self.isLoadingApps = false
-                Log.info("apps", "\(apps.count) applications trouvées")
+                Log.info("apps", "\(apps.count) applications found")
             }
         }
     }

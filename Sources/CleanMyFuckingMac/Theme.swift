@@ -67,8 +67,8 @@ struct GhostButtonStyle: ButtonStyle {
 
 /// Screen title with a subtitle and trailing actions.
 struct PageHeader<Actions: View>: View {
-    let title: String
-    let subtitle: String
+    let title: LocalizedStringKey
+    let subtitle: LocalizedStringKey
     @ViewBuilder var actions: Actions
 
     var body: some View {
@@ -86,8 +86,8 @@ struct PageHeader<Actions: View>: View {
 /// Centered placeholder for screens with nothing to show yet.
 struct EmptyState<Actions: View>: View {
     let symbol: String
-    let title: String
-    let message: String
+    let title: LocalizedStringKey
+    let message: LocalizedStringKey
     @ViewBuilder var actions: Actions
 
     var body: some View {
